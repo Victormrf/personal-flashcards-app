@@ -1,0 +1,13 @@
+# Binaries
+*.exe
+*.exe~
+/flashcard-api
+
+# Environment variables — never commit this
+.env
+
+# Go build cache
+/vendor
+
+# sqlc generated files (optional — some teams commit these, some don't)
+# db/*.go
