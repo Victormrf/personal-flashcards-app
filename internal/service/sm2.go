@@ -6,7 +6,7 @@ import (
 )
 
 // CardState holds the three scheduling fields that SM-2 operates on.
-// These mirror the fields on domain.Card but are isolated here
+// These mirror the fields on domain. Card but are isolated here
 // so the algorithm has no dependency on the full Card type.
 type CardState struct {
 	Interval    int
