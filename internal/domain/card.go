@@ -39,8 +39,9 @@ type ReviewLog struct {
 }
 
 type User struct {
-	ID        uuid.UUID
-	Email     string
-	Name      string
-	CreatedAt time.Time
+	ID           uuid.UUID
+	Email        string
+	Name         string
+	PasswordHash string
+	CreatedAt    time.Time
 }

@@ -48,6 +48,7 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) (*domain.
 		ID:    user.ID,
 		Email: user.Email,
 		Name:  user.Name,
+		PasswordHash: user.PasswordHash,
 	})
 	if err != nil {
 		return nil, err
@@ -61,6 +62,7 @@ func toDomainUser(row db.User) domain.User {
 		ID:        row.ID,
 		Email:     row.Email,
 		Name:      row.Name,
+		PasswordHash: row.PasswordHash,
 		CreatedAt: row.CreatedAt,
 	}
 }
