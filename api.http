@@ -1,0 +1,64 @@
+@baseUrl = http://localhost:8080/api/v1
+@authToken = {{login.response.body.token}}
+
+### 1. Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "victor2@test.com",
+  "name": "Victor",
+  "password": "mudar123"
+}
+
+### 2. Login (Run this to get the token)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "victor@test.com",
+  "password": "mudar123"
+}
+
+### 3. List Decks
+GET {{baseUrl}}/decks
+Authorization: Bearer {{authToken}}
+
+### 4. Create a Deck
+# @name create-deck
+POST {{baseUrl}}/decks
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Go fundamentals",
+  "description": "Core Go concepts"
+}
+
+### 5. Create a Card inside a Deck
+# Replace {deckID} with a real deck UUID from List Decks response
+POST {{baseUrl}}/decks/7b0eef9d-5326-4303-bceb-abc49d810107/cards
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "front": "What is dependency injection?",
+  "back": "Passing dependencies into a struct rather than creating them inside."
+}
+
+### 6. Get due cards for study
+GET {{baseUrl}}/study
+Authorization: Bearer {{authToken}}
+
+### 7. Submit a review for a card
+# Replace {cardID} with a real card UUID
+POST {{baseUrl}}/cards/64c8c232-5649-4e2a-af68-b292314fcb7d/review
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "response_ms": 1200
+}
+
