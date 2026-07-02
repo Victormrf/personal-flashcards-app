@@ -59,6 +59,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
+	r.Use(middleware.CORS)
 
 	// Public routes — no JWT required
 	r.Post("/api/v1/auth/register", authH.Register)
