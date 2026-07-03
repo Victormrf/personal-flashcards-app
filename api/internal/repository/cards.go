@@ -10,6 +10,7 @@ import (
 
 type CardRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.Card, error)
+	FindByDeck(ctx context.Context, deckID uuid.UUID) ([]domain.Card, error)
 	FindDue(ctx context.Context, params FindDueParams) ([]domain.Card, error)
 	Create(ctx context.Context, card domain.Card) (*domain.Card, error)
 	UpdateScheduling(ctx context.Context, params UpdateSchedulingParams) error

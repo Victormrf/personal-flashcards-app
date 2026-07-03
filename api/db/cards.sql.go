@@ -78,6 +78,45 @@ func (q *Queries) GetCardByID(ctx context.Context, id uuid.UUID) (Card, error) {
 	return i, err
 }
 
+const getCardsByDeck = `-- name: GetCardsByDeck :many
+SELECT id, deck_id, front, back, ease_factor, interval_days, repetitions, due_at, created_at FROM cards
+WHERE deck_id = $1
+ORDER BY created_at ASC
+`
+
+func (q *Queries) GetCardsByDeck(ctx context.Context, deckID uuid.UUID) ([]Card, error) {
+	rows, err := q.db.QueryContext(ctx, getCardsByDeck, deckID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Card
+	for rows.Next() {
+		var i Card
+		if err := rows.Scan(
+			&i.ID,
+			&i.DeckID,
+			&i.Front,
+			&i.Back,
+			&i.EaseFactor,
+			&i.IntervalDays,
+			&i.Repetitions,
+			&i.DueAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDueCards = `-- name: GetDueCards :many
 SELECT id, deck_id, front, back, ease_factor, interval_days, repetitions, due_at, created_at FROM cards
 WHERE deck_id IN (

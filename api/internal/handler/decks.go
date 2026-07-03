@@ -22,6 +22,22 @@ type createDeckRequest struct {
 	Description string `json:"description"`
 }
 
+func (h *DeckHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "deckID"))
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	deck, err := h.decks.GetByID(r.Context(), id)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, deck)
+}
+
 func (h *DeckHandler) List(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(uuid.UUID)
 

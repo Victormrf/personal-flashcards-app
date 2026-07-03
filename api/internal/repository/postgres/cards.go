@@ -31,6 +31,18 @@ func (r *cardRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Ca
 	return &c, nil
 }
 
+func (r *cardRepository) FindByDeck(ctx context.Context, deckID uuid.UUID) ([]domain.Card, error) {
+	rows, err := r.q.GetCardsByDeck(ctx, deckID)
+	if err != nil {
+		return nil, err
+	}
+	cards := make([]domain.Card, len(rows))
+	for i, row := range rows {
+		cards[i] = toDomainCard(row)
+	}
+	return cards, nil
+}
+
 func (r *cardRepository) FindDue(ctx context.Context, p repository.FindDueParams) ([]domain.Card, error) {
 	rows, err := r.q.GetDueCards(ctx, db.GetDueCardsParams{
 		UserID: p.UserID,
