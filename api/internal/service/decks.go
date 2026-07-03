@@ -17,6 +17,17 @@ func NewDeckService(decks repository.DeckRepository) *DeckService {
 	return &DeckService{decks: decks}
 }
 
+func (s *DeckService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Deck, error) {
+	deck, err := s.decks.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if deck == nil {
+		return nil, fmt.Errorf("deck %s not found", id)
+	}
+	return deck, nil
+}
+
 func (s *DeckService) Create(ctx context.Context, userID uuid.UUID, name, description string) (*domain.Deck, error) {
 	deck := domain.Deck{
 		ID:          uuid.New(),

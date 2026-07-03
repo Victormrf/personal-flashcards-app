@@ -77,6 +77,8 @@ func main() {
 		r.Post("/api/v1/decks",                      deckH.Create)
 		r.Delete("/api/v1/decks/{deckID}",           deckH.Delete)
 		r.Post("/api/v1/decks/{deckID}/cards",       cardH.Create)
+		r.Get("/api/v1/decks/{deckID}",             deckH.GetByID)
+		r.Get("/api/v1/decks/{deckID}/cards",       cardH.GetByDeck)
 	})
 
 	// 8. Start server

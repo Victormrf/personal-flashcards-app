@@ -18,6 +18,10 @@ func NewCardService(cards repository.CardRepository, decks repository.DeckReposi
 	return &CardService{cards: cards, decks: decks}
 }
 
+func (s *CardService) GetByDeck(ctx context.Context, deckID uuid.UUID) ([]domain.Card, error) {
+	return s.cards.FindByDeck(ctx, deckID)
+}
+
 func (s *CardService) Create(ctx context.Context, deckID uuid.UUID, front, back string) (*domain.Card, error) {
 	// Verify the deck exists before creating a card inside it
 	deck, err := s.decks.FindByID(ctx, deckID)

@@ -22,6 +22,22 @@ type createCardRequest struct {
 	Back  string `json:"back"`
 }
 
+func (h *CardHandler) GetByDeck(w http.ResponseWriter, r *http.Request) {
+	deckID, err := uuid.Parse(chi.URLParam(r, "deckID"))
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	cards, err := h.cards.GetByDeck(r.Context(), deckID)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, cards)
+}
+
 func (h *CardHandler) Create(w http.ResponseWriter, r *http.Request) {
 	deckID, err := uuid.Parse(chi.URLParam(r, "deckID"))
 	if err != nil {
