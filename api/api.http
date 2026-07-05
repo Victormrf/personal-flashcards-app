@@ -1,32 +1,46 @@
 @baseUrl = http://localhost:8080/api/v1
 @authToken = {{login.response.body.token}}
 
+### ─────────────────────────────────────
+### AUTH
+### ─────────────────────────────────────
+
 ### 1. Register a new user
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "email": "victor2@test.com",
+  "email": "victor@test.com",
   "name": "Victor",
   "password": "mudar123"
 }
 
-### 2. Login (Run this to get the token)
+###
+
+### 2. Login — run this first to populate @authToken
 # @name login
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "victor2@test.com",
+  "email": "victor@test.com",
   "password": "mudar123"
 }
 
-### 3. List Decks
+###
+
+### ─────────────────────────────────────
+### DECKS
+### ─────────────────────────────────────
+
+### 3. List all decks
 GET {{baseUrl}}/decks
 Authorization: Bearer {{authToken}}
 
-### 4. Create a Deck
-# @name create-deck
+###
+
+### 4. Create a deck
+# @name createDeck
 POST {{baseUrl}}/decks
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
@@ -36,29 +50,132 @@ Content-Type: application/json
   "description": "Core Go concepts"
 }
 
-### 5. Create a Card inside a Deck
-# Replace {deckID} with a real deck UUID from List Decks response
-POST {{baseUrl}}/decks/7b0eef9d-5326-4303-bceb-abc49d810107/cards
+###
+
+### 5. Get a deck by ID
+# Replace the UUID with a real deck ID from the List decks response
+GET {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+###
+
+### 6. Delete a deck
+# Replace the UUID with a real deck ID
+DELETE {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+###
+
+### ─────────────────────────────────────
+### CARDS
+### ─────────────────────────────────────
+
+### 7. List cards in a deck
+# Replace the UUID with a real deck ID
+GET {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000/cards
+Authorization: Bearer {{authToken}}
+
+###
+
+### 8. Create a card inside a deck
+# @name createCard
+# Replace the UUID with a real deck ID
+POST {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000/cards
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "front": "What is dependency injection?",
-  "back": "Passing dependencies into a struct rather than creating them inside."
+  "front": "What does defer do in Go?",
+  "back": "Schedules a function call to run at the end of the surrounding function scope."
 }
 
-### 6. Get due cards for study
+###
+
+### 9. Create a second card (for study session testing)
+# Replace the UUID with a real deck ID
+POST {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000/cards
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "front": "What is the difference between a pointer and a value in Go?",
+  "back": "A value is a copy. A pointer holds the memory address of the original, allowing the function to modify it."
+}
+
+###
+
+### 10. Delete a card
+# Replace the UUID with a real card ID
+DELETE {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+###
+
+### ─────────────────────────────────────
+### STUDY SESSION
+### ─────────────────────────────────────
+
+### 11. Get all due cards across all decks
 GET {{baseUrl}}/study
 Authorization: Bearer {{authToken}}
 
-### 7. Submit a review for a card
-# Replace {cardID} with a real card UUID
-POST {{baseUrl}}/cards/64c8c232-5649-4e2a-af68-b292314fcb7d/review
+###
+
+### 12. Get due cards for a specific deck
+# Replace the UUID with a real deck ID
+GET {{baseUrl}}/study?deck_id=00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+###
+
+### 13. Submit a review — Again (rating 1)
+# Replace the UUID with a real card ID
+POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "rating": 1,
+  "response_ms": 4500
+}
+
+###
+
+### 14. Submit a review — Hard (rating 3)
+# Replace the UUID with a real card ID
+POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "rating": 3,
+  "response_ms": 3200
+}
+
+###
+
+### 15. Submit a review — Good (rating 4)
+# Replace the UUID with a real card ID
+POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "response_ms": 1800
+}
+
+###
+
+### 16. Submit a review — Easy (rating 5)
+# Replace the UUID with a real card ID
+POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
   "rating": 5,
-  "response_ms": 1200
+  "response_ms": 900
 }
 
+###

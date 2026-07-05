@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
-
+	
 	"github.com/google/uuid"
+	"github.com/Victormrf/personal-flashcards-app/internal/cache"
 	"github.com/Victormrf/personal-flashcards-app/internal/domain"
 	"github.com/Victormrf/personal-flashcards-app/internal/repository"
 )
@@ -13,15 +15,55 @@ import (
 type ReviewService struct {
 	cards   repository.CardRepository
 	reviews repository.ReviewRepository
+	cache   *cache.RedisCache
 }
 
-func NewReviewService(cards repository.CardRepository, reviews repository.ReviewRepository) *ReviewService {
-	return &ReviewService{cards: cards, reviews: reviews}
+func NewReviewService(
+	cards repository.CardRepository,
+	reviews repository.ReviewRepository,
+	cache *cache.RedisCache,
+) *ReviewService {
+	return &ReviewService{cards: cards, reviews: reviews, cache: cache}
 }
 
-// GetDueCards returns all cards due for review for a given user.
-// An optional deckID filters to a specific deck — nil means all decks.
+func dueCacheKey(userID uuid.UUID) string {
+	return fmt.Sprintf("due_cards:%s", userID)
+}
+
 func (s *ReviewService) GetDueCards(ctx context.Context, userID uuid.UUID, deckID *uuid.UUID) ([]domain.Card, error) {
+	// Only cache the all-decks query — per-deck queries are less frequent
+	if deckID == nil {
+		key := dueCacheKey(userID)
+
+		cached, err := s.cache.Get(ctx, key)
+		if err == nil {
+			// Cache hit — deserialize and return
+			var cards []domain.Card
+			if err := json.Unmarshal([]byte(cached), &cards); err == nil {
+				return cards, nil
+			}
+		}
+
+		// Cache miss — query the database
+		cards, err := s.cards.FindDue(ctx, repository.FindDueParams{
+			UserID: userID,
+			DeckID: nil,
+			Before: time.Now(),
+			Limit:  20,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Write to cache with 5 minute TTL
+		if data, err := json.Marshal(cards); err == nil {
+			s.cache.Set(ctx, key, string(data), 5*time.Minute)
+		}
+
+		return cards, nil
+	}
+
+	// Per-deck query — skip cache, always fresh
 	return s.cards.FindDue(ctx, repository.FindDueParams{
 		UserID: userID,
 		DeckID: deckID,
@@ -30,8 +72,6 @@ func (s *ReviewService) GetDueCards(ctx context.Context, userID uuid.UUID, deckI
 	})
 }
 
-// SubmitReview applies the SM-2 algorithm to a card and persists
-// both the updated scheduling state and the review log entry.
 func (s *ReviewService) SubmitReview(
 	ctx context.Context,
 	cardID uuid.UUID,
@@ -87,11 +127,14 @@ func (s *ReviewService) SubmitReview(
 		return nil, err
 	}
 
-	// 6. Return the updated card
+	// Invalidate the due cards cache for this user
+	s.cache.Delete(ctx, dueCacheKey(userID))
+
 	card.IntervalDays = result.Interval
 	card.Repetitions = result.Repetitions
 	card.EaseFactor = result.EaseFactor
 	card.DueAt = result.DueAt
 
+	// 6. Return the updated card
 	return card, nil
 }

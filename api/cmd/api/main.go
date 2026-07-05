@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"github.com/Victormrf/personal-flashcards-app/internal/middleware"
 	"github.com/Victormrf/personal-flashcards-app/internal/repository/postgres"
 	"github.com/Victormrf/personal-flashcards-app/internal/service"
+	"github.com/Victormrf/personal-flashcards-app/internal/cache"
 )
 
 func main() {
@@ -37,6 +39,12 @@ func main() {
 	// 3. Init sqlc queries
 	queries := db.New(conn)
 
+	redisCache := cache.NewRedisCache(cfg.RedisURL)
+	if err := redisCache.Ping(context.Background()); err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+	log.Println("redis connected")
+
 	// 4. Wire repositories
 	cardRepo   := postgres.NewCardRepository(queries)
 	deckRepo   := postgres.NewDeckRepository(queries)
@@ -46,7 +54,7 @@ func main() {
 	// 5. Wire services
 	cardSvc   := service.NewCardService(cardRepo, deckRepo)
 	deckSvc   := service.NewDeckService(deckRepo)
-	reviewSvc := service.NewReviewService(cardRepo, reviewRepo)
+	reviewSvc := service.NewReviewService(cardRepo, reviewRepo, redisCache)
 	authSvc   := service.NewAuthService(userRepo, cfg.JWTSecret)
 
 	// 6. Wire handlers
