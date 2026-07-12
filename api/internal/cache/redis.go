@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/Victormrf/personal-flashcards-app/internal/metrics"
 )
 
 type RedisCache struct {
@@ -22,7 +23,13 @@ func NewRedisCache(url string) *RedisCache {
 }
 
 func (c *RedisCache) Get(ctx context.Context, key string) (string, error) {
-	return c.client.Get(ctx, key).Result()
+	val, err := c.client.Get(ctx, key).Result()
+	if err != nil {
+		metrics.CacheMissesTotal.Inc()
+		return "", err
+	}
+	metrics.CacheHitsTotal.Inc()
+	return val, nil
 }
 
 func (c *RedisCache) Set(ctx context.Context, key string, value string, ttl time.Duration) error {
