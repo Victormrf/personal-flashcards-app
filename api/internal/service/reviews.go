@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"strconv"
 	
 	"github.com/google/uuid"
 	"github.com/Victormrf/personal-flashcards-app/internal/cache"
 	"github.com/Victormrf/personal-flashcards-app/internal/domain"
 	"github.com/Victormrf/personal-flashcards-app/internal/repository"
+	"github.com/Victormrf/personal-flashcards-app/internal/metrics"
 )
 
 type ReviewService struct {
@@ -126,6 +128,9 @@ func (s *ReviewService) SubmitReview(
 	if err != nil {
 		return nil, err
 	}
+
+	// Increment the reviews counter labelled by rating
+	metrics.CardsReviewedTotal.WithLabelValues(strconv.Itoa(rating)).Inc()
 
 	// Invalidate the due cards cache for this user
 	s.cache.Delete(ctx, dueCacheKey(userID))

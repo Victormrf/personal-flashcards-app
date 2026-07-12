@@ -1,5 +1,8 @@
 @baseUrl = http://localhost:8080/api/v1
 @authToken = {{login.response.body.token}}
+@deckId = {{createDeck.response.body.ID}}
+
+@cardId = {{createCard.response.body.ID}}
 
 ### ─────────────────────────────────────
 ### AUTH
@@ -46,22 +49,20 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "name": "Go fundamentals",
-  "description": "Core Go concepts"
+  "name": "System Design Tech Stack",
+  "description": "Main techonologies and pattern for system design"
 }
 
 ###
 
 ### 5. Get a deck by ID
-# Replace the UUID with a real deck ID from the List decks response
-GET {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000
+GET {{baseUrl}}/decks/{{deckId}}
 Authorization: Bearer {{authToken}}
 
 ###
 
 ### 6. Delete a deck
-# Replace the UUID with a real deck ID
-DELETE {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000
+DELETE {{baseUrl}}/decks/{{deckId}}
 Authorization: Bearer {{authToken}}
 
 ###
@@ -71,42 +72,39 @@ Authorization: Bearer {{authToken}}
 ### ─────────────────────────────────────
 
 ### 7. List cards in a deck
-# Replace the UUID with a real deck ID
-GET {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000/cards
+GET {{baseUrl}}/decks/{{deckId}}/cards
 Authorization: Bearer {{authToken}}
 
 ###
 
 ### 8. Create a card inside a deck
 # @name createCard
-# Replace the UUID with a real deck ID
-POST {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000/cards
+POST {{baseUrl}}/decks/{{deckId}}/cards
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "front": "What does defer do in Go?",
-  "back": "Schedules a function call to run at the end of the surrounding function scope."
+  "front": "What was the main disadvantage for clients interacting with microservices before the introduction of API Gateways?",
+  "back": "Clients had to track the unique URLs for every specific microservice they needed to call."
 }
 
 ###
 
 ### 9. Create a second card (for study session testing)
-# Replace the UUID with a real deck ID
-POST {{baseUrl}}/decks/00000000-0000-0000-0000-000000000000/cards
+POST {{baseUrl}}/decks/{{deckId}}/cards
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "front": "What is the difference between a pointer and a value in Go?",
-  "back": "A value is a copy. A pointer holds the memory address of the original, allowing the function to modify it."
+  "front": "What was the primary operational bottleneck of using a 'master microservice' for routing instead of a gateway?",
+  "back": "Simple routing logic changes required a full redeployment of the entire microservice."
 }
 
 ###
 
 ### 10. Delete a card
 # Replace the UUID with a real card ID
-DELETE {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000
+DELETE {{baseUrl}}/cards/{{cardId}}
 Authorization: Bearer {{authToken}}
 
 ###
@@ -122,15 +120,14 @@ Authorization: Bearer {{authToken}}
 ###
 
 ### 12. Get due cards for a specific deck
-# Replace the UUID with a real deck ID
-GET {{baseUrl}}/study?deck_id=00000000-0000-0000-0000-000000000000
+GET {{baseUrl}}/study?deck_id={{deckId}}
 Authorization: Bearer {{authToken}}
 
 ###
 
 ### 13. Submit a review — Again (rating 1)
 # Replace the UUID with a real card ID
-POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+POST {{baseUrl}}/cards/7fa2d258-1f7b-45db-86cd-50e1fb95da3a/review
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -143,7 +140,7 @@ Content-Type: application/json
 
 ### 14. Submit a review — Hard (rating 3)
 # Replace the UUID with a real card ID
-POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+POST {{baseUrl}}/cards/{{cardId}}/review
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -156,7 +153,7 @@ Content-Type: application/json
 
 ### 15. Submit a review — Good (rating 4)
 # Replace the UUID with a real card ID
-POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+POST {{baseUrl}}/cards/{{cardId}}/review
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -169,7 +166,7 @@ Content-Type: application/json
 
 ### 16. Submit a review — Easy (rating 5)
 # Replace the UUID with a real card ID
-POST {{baseUrl}}/cards/00000000-0000-0000-0000-000000000000/review
+POST {{baseUrl}}/cards/{{deckId}}/review
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -179,3 +176,10 @@ Content-Type: application/json
 }
 
 ###
+
+### ─────────────────────────────────────
+### METRICS
+### ─────────────────────────────────────
+
+### 17. Get Prometheus metrics
+GET http://localhost:8080/metrics

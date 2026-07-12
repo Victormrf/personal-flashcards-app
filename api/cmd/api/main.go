@@ -18,6 +18,7 @@ import (
 	"github.com/Victormrf/personal-flashcards-app/internal/repository/postgres"
 	"github.com/Victormrf/personal-flashcards-app/internal/service"
 	"github.com/Victormrf/personal-flashcards-app/internal/cache"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -68,8 +69,10 @@ func main() {
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
 	r.Use(middleware.CORS)
+	r.Use(middleware.PrometheusMiddleware)
 
 	// Public routes — no JWT required
+	r.Handle("/metrics", promhttp.Handler())
 	r.Post("/api/v1/auth/register", authH.Register)
 	r.Post("/api/v1/auth/login",    authH.Login)
 
