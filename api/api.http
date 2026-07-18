@@ -127,7 +127,7 @@ Authorization: Bearer {{authToken}}
 
 ### 13. Submit a review — Again (rating 1)
 # Replace the UUID with a real card ID
-POST {{baseUrl}}/cards/7fa2d258-1f7b-45db-86cd-50e1fb95da3a/review
+POST {{baseUrl}}/cards/beb69752-26e5-4c43-9758-d59a36570374/review
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
