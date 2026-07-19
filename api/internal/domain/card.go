@@ -7,41 +7,41 @@ import (
 )
 
 type Card struct {
-	ID           uuid.UUID
-	DeckID       uuid.UUID
-	Front        string
-	Back         string
-	EaseFactor   float64
-	IntervalDays int
-	Repetitions  int
-	DueAt        time.Time
-	CreatedAt    time.Time
+	ID           uuid.UUID `json:"id"`
+	DeckID       uuid.UUID `json:"deck_id"`
+	Front        string    `json:"front"`
+	Back         string    `json:"back"`
+	EaseFactor   float64   `json:"ease_factor"`
+	IntervalDays int       `json:"interval_days"`
+	Repetitions  int       `json:"repetitions"`
+	DueAt        time.Time `json:"due_at"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type Deck struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	ParentID    *uuid.UUID // pointer because it's nullable
-	Name        string
-	Description string
-	CreatedAt   time.Time
+	ID          uuid.UUID  `json:"id"`
+	UserID      uuid.UUID  `json:"user_id"`
+	ParentID    *uuid.UUID `json:"parent_id,omitempty"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 type ReviewLog struct {
-	ID           uuid.UUID
-	CardID       uuid.UUID
-	UserID       uuid.UUID
-	Rating       int
-	IntervalDays int
-	EaseFactor   float64
-	ResponseMs   int
-	ReviewedAt   time.Time
+	ID           uuid.UUID `json:"id"`
+	CardID       uuid.UUID `json:"card_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	Rating       int       `json:"rating"`
+	IntervalDays int       `json:"interval_days"`
+	EaseFactor   float64   `json:"ease_factor"`
+	ResponseMs   int       `json:"response_ms"`
+	ReviewedAt   time.Time `json:"reviewed_at"`
 }
 
 type User struct {
-	ID           uuid.UUID
-	Email        string
-	Name         string
-	PasswordHash string
-	CreatedAt    time.Time
+	ID           uuid.UUID `json:"id"`
+	Email        string    `json:"email"`
+	Name         string    `json:"name"`
+	PasswordHash string    `json:"-"`
+	CreatedAt    time.Time `json:"created_at"`
 }
