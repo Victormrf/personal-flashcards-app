@@ -35,6 +35,7 @@ type Deck struct {
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
 	CreatedAt   time.Time      `json:"created_at"`
+	Category    sql.NullString `json:"category"`
 }
 
 type ReviewLog struct {

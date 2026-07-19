@@ -13,9 +13,9 @@ import (
 )
 
 const createDeck = `-- name: CreateDeck :one
-INSERT INTO decks (id, user_id, name, description)
-VALUES ($1, $2, $3, $4)
-RETURNING id, user_id, parent_id, name, description, created_at
+INSERT INTO decks (id, user_id, name, description, category)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, user_id, parent_id, name, description, created_at, category
 `
 
 type CreateDeckParams struct {
@@ -23,6 +23,7 @@ type CreateDeckParams struct {
 	UserID      uuid.UUID      `json:"user_id"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
+	Category    sql.NullString `json:"category"`
 }
 
 func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, error) {
@@ -31,6 +32,7 @@ func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, e
 		arg.UserID,
 		arg.Name,
 		arg.Description,
+		arg.Category,
 	)
 	var i Deck
 	err := row.Scan(
@@ -40,6 +42,7 @@ func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, e
 		&i.Name,
 		&i.Description,
 		&i.CreatedAt,
+		&i.Category,
 	)
 	return i, err
 }
@@ -53,8 +56,40 @@ func (q *Queries) DeleteDeck(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getCategoriesByUser = `-- name: GetCategoriesByUser :many
+SELECT DISTINCT category
+FROM decks
+WHERE user_id = $1
+  AND category IS NOT NULL
+  AND category != ''
+ORDER BY category ASC
+`
+
+func (q *Queries) GetCategoriesByUser(ctx context.Context, userID uuid.UUID) ([]sql.NullString, error) {
+	rows, err := q.db.QueryContext(ctx, getCategoriesByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []sql.NullString
+	for rows.Next() {
+		var category sql.NullString
+		if err := rows.Scan(&category); err != nil {
+			return nil, err
+		}
+		items = append(items, category)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDeckByID = `-- name: GetDeckByID :one
-SELECT id, user_id, parent_id, name, description, created_at FROM decks
+SELECT id, user_id, parent_id, name, description, created_at, category FROM decks
 WHERE id = $1
 `
 
@@ -68,12 +103,13 @@ func (q *Queries) GetDeckByID(ctx context.Context, id uuid.UUID) (Deck, error) {
 		&i.Name,
 		&i.Description,
 		&i.CreatedAt,
+		&i.Category,
 	)
 	return i, err
 }
 
 const getDecksByUser = `-- name: GetDecksByUser :many
-SELECT id, user_id, parent_id, name, description, created_at FROM decks
+SELECT id, user_id, parent_id, name, description, created_at, category FROM decks
 WHERE user_id = $1
 ORDER BY created_at ASC
 `
@@ -94,6 +130,7 @@ func (q *Queries) GetDecksByUser(ctx context.Context, userID uuid.UUID) ([]Deck,
 			&i.Name,
 			&i.Description,
 			&i.CreatedAt,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}

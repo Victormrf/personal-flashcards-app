@@ -18,8 +18,9 @@ func NewDeckHandler(decks *service.DeckService) *DeckHandler {
 }
 
 type createDeckRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+    Name        string `json:"name"`
+    Description string `json:"description"`
+    Category    string `json:"category"` // optional
 }
 
 func (h *DeckHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -51,28 +52,40 @@ func (h *DeckHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(uuid.UUID)
+    userID := r.Context().Value("userID").(uuid.UUID)
 
-	var req createDeckRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, err)
-		return
-	}
+    var req createDeckRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        writeError(w, err)
+        return
+    }
 
-	if req.Name == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{
-			"error": "name is required",
-		})
-		return
-	}
+    if req.Name == "" {
+        writeJSON(w, http.StatusBadRequest, map[string]string{
+            "error": "name is required",
+        })
+        return
+    }
 
-	deck, err := h.decks.Create(r.Context(), userID, req.Name, req.Description)
-	if err != nil {
-		writeError(w, err)
-		return
-	}
+    deck, err := h.decks.Create(r.Context(), userID, req.Name, req.Description, req.Category)
+    if err != nil {
+        writeError(w, err)
+        return
+    }
 
-	writeJSON(w, http.StatusCreated, deck)
+    writeJSON(w, http.StatusCreated, deck)
+}
+
+func (h *DeckHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
+    userID := r.Context().Value("userID").(uuid.UUID)
+
+    categories, err := h.decks.GetCategories(r.Context(), userID)
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    writeJSON(w, http.StatusOK, categories)
 }
 
 func (h *DeckHandler) Delete(w http.ResponseWriter, r *http.Request) {
