@@ -28,18 +28,23 @@ func (s *DeckService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Deck, 
 	return deck, nil
 }
 
-func (s *DeckService) Create(ctx context.Context, userID uuid.UUID, name, description string) (*domain.Deck, error) {
-	deck := domain.Deck{
-		ID:          uuid.New(),
-		UserID:      userID,
-		Name:        name,
-		Description: description,
-	}
-	return s.decks.Create(ctx, deck)
+func (s *DeckService) Create(ctx context.Context, userID uuid.UUID, name, description, category string) (*domain.Deck, error) {
+    deck := domain.Deck{
+        ID:          uuid.New(),
+        UserID:      userID,
+        Name:        name,
+        Description: description,
+        Category:    category,
+    }
+    return s.decks.Create(ctx, deck)
 }
 
 func (s *DeckService) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Deck, error) {
 	return s.decks.FindByUser(ctx, userID)
+}
+
+func (s *DeckService) GetCategories(ctx context.Context, userID uuid.UUID) ([]string, error) {
+    return s.decks.GetCategories(ctx, userID)
 }
 
 func (s *DeckService) Delete(ctx context.Context, id uuid.UUID) error {

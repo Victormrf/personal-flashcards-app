@@ -24,6 +24,7 @@ type Deck struct {
 	ParentID    *uuid.UUID `json:"parent_id,omitempty"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
+	Category    string     `json:"category"`	
 	CreatedAt   time.Time  `json:"created_at"`
 }
 

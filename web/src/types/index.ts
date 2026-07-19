@@ -10,6 +10,7 @@ export interface Deck {
   user_id: string;
   name: string;
   description: string;
+  category: string;
   created_at: string;
 }
 
