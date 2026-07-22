@@ -73,6 +73,31 @@ func (r *cardRepository) Create(ctx context.Context, card domain.Card) (*domain.
 	return &c, nil
 }
 
+func (r *cardRepository) CreateMany(ctx context.Context, cards []domain.Card) error {
+    if len(cards) == 0 {
+        return nil
+    }
+
+    ids     := make([]uuid.UUID, len(cards))
+    deckIDs := make([]uuid.UUID, len(cards))
+    fronts  := make([]string,    len(cards))
+    backs   := make([]string,    len(cards))
+
+    for i, c := range cards {
+        ids[i]     = c.ID
+        deckIDs[i] = c.DeckID
+        fronts[i]  = c.Front
+        backs[i]   = c.Back
+    }
+
+    return r.q.CreateManyCards(ctx, db.CreateManyCardsParams{
+        Column1: ids,
+        Column2: deckIDs,
+        Column3: fronts,
+        Column4: backs,
+    })
+}
+
 func (r *cardRepository) UpdateScheduling(ctx context.Context, p repository.UpdateSchedulingParams) error {
 	return r.q.UpdateCardScheduling(ctx, db.UpdateCardSchedulingParams{
 		ID:           p.ID,

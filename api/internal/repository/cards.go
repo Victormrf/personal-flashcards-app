@@ -13,6 +13,7 @@ type CardRepository interface {
 	FindByDeck(ctx context.Context, deckID uuid.UUID) ([]domain.Card, error)
 	FindDue(ctx context.Context, params FindDueParams) ([]domain.Card, error)
 	Create(ctx context.Context, card domain.Card) (*domain.Card, error)
+	CreateMany(ctx context.Context, cards []domain.Card) error
 	UpdateScheduling(ctx context.Context, params UpdateSchedulingParams) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }

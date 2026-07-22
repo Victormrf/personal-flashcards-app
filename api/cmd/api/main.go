@@ -88,6 +88,7 @@ func main() {
 		r.Post("/api/v1/decks",                      deckH.Create)
 		r.Delete("/api/v1/decks/{deckID}",           deckH.Delete)
 		r.Post("/api/v1/decks/{deckID}/cards",       cardH.Create)
+		r.Post("/api/v1/decks/{deckID}/cards/batch", cardH.CreateMany)
 		r.Get("/api/v1/decks/{deckID}",             deckH.GetByID)
 		r.Get("/api/v1/decks/{deckID}/cards",       cardH.GetByDeck)
 		r.Get("/api/v1/categories", 				deckH.GetCategories)

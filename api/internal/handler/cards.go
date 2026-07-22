@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/Victormrf/personal-flashcards-app/internal/domain"
 	"github.com/Victormrf/personal-flashcards-app/internal/service"
 )
 
@@ -21,6 +22,14 @@ type createCardRequest struct {
 	Front string `json:"front"`
 	Back  string `json:"back"`
 }
+
+type createManyCardsRequest struct {
+    Cards []struct {
+        Front string `json:"front"`
+        Back  string `json:"back"`
+    } `json:"cards"`
+}
+
 
 func (h *CardHandler) GetByDeck(w http.ResponseWriter, r *http.Request) {
 	deckID, err := uuid.Parse(chi.URLParam(r, "deckID"))
@@ -65,6 +74,48 @@ func (h *CardHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, card)
+}
+
+func (h *CardHandler) CreateMany(w http.ResponseWriter, r *http.Request) {
+    deckID, err := uuid.Parse(chi.URLParam(r, "deckID"))
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    var req createManyCardsRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    if len(req.Cards) == 0 {
+        writeJSON(w, http.StatusBadRequest, map[string]string{
+            "error": "cards array must not be empty",
+        })
+        return
+    }
+
+    if len(req.Cards) > 500 {
+        writeJSON(w, http.StatusBadRequest, map[string]string{
+            "error": "maximum 500 cards per import",
+        })
+        return
+    }
+
+    pairs := make([]domain.Card, len(req.Cards))
+    for i, c := range req.Cards {
+        pairs[i] = domain.Card{Front: c.Front, Back: c.Back}
+    }
+
+    if err := h.cards.CreateMany(r.Context(), deckID, pairs); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    writeJSON(w, http.StatusCreated, map[string]int{
+        "created": len(req.Cards),
+    })
 }
 
 func (h *CardHandler) Delete(w http.ResponseWriter, r *http.Request) {

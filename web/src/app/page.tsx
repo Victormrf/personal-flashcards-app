@@ -7,7 +7,7 @@ import Link from "next/link";
 import api from "@/lib/api";
 import { categoryColor } from "@/lib/categoryColor";
 import { Deck, Card } from "@/types";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Plus, Upload } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -53,13 +53,22 @@ export default function DashboardPage() {
               Master your knowledge, one card at a time.
             </p>
           </div>
-          <Link
-            href="/decks/new"
-            className="inline-flex items-center gap-2 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-full text-xs transition-all shadow-md shadow-slate-900/10 dark:shadow-indigo-500/10 cursor-pointer"
-          >
-            <Plus size={14} />
-            New Deck
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/import"
+              className="inline-flex items-center gap-2 border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold py-3 px-5 rounded-full text-xs transition-all cursor-pointer shadow-sm"
+            >
+              <Upload size={14} className="text-indigo-600 dark:text-indigo-400" />
+              Import external deck
+            </Link>
+            <Link
+              href="/decks/new"
+              className="inline-flex items-center gap-2 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-full text-xs transition-all shadow-md shadow-slate-900/10 dark:shadow-indigo-500/10 cursor-pointer"
+            >
+              <Plus size={14} />
+              New Deck
+            </Link>
+          </div>
         </div>
 
         {/* Category filter bar */}
@@ -110,7 +119,7 @@ export default function DashboardPage() {
 
         {/* Empty state */}
         {filteredDecks?.length === 0 && !isLoading && (
-          <div className="text-center py-20 px-6 bg-white dark:bg-[#0e172a]/60 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl max-w-md mx-auto shadow-sm">
+          <div className="text-center py-20 px-6 bg-white dark:bg-[#222225]/60 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl max-w-md mx-auto shadow-sm">
             <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mx-auto mb-6">
               <BookOpen size={30} />
             </div>
@@ -142,7 +151,7 @@ export default function DashboardPage() {
               <div
                 key={deck.id}
                 onClick={() => router.push(`/decks/${deck.id}`)}
-                className={`relative overflow-hidden bg-white dark:bg-[#0d1527] border border-slate-200/50 dark:border-slate-800/60 rounded-[32px] p-8 transition-all duration-300 ease-out hover:scale-[1.05] hover:-translate-y-2 cursor-pointer flex flex-col justify-between min-h-[240px]`}
+                className={`relative overflow-hidden bg-white dark:bg-[#222225] border border-slate-200/50 dark:border-slate-800/60 rounded-[32px] p-8 transition-all duration-300 ease-out hover:scale-[1.05] hover:-translate-y-2 cursor-pointer flex flex-col justify-between min-h-[240px]`}
                 style={{
                   boxShadow: `2px 2px 0px ${colors.bg}`,
                 }}
@@ -153,12 +162,6 @@ export default function DashboardPage() {
                   (e.currentTarget as HTMLDivElement).style.boxShadow = `2px 2px 0px ${colors.bg}`;
                 }}
               >
-                {/* Accent glow */}
-                <div
-                  className="absolute top-0 left-0 w-24 h-24 blur-xl rounded-full -translate-x-6 -translate-y-6 pointer-events-none"
-                  style={{ backgroundColor: colors.bg, opacity: 0.6 }}
-                />
-
                 <div>
                   {/* Category dot — hash-colored, replaces index-based dot */}
                   <div
