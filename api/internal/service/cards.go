@@ -42,6 +42,28 @@ func (s *CardService) Create(ctx context.Context, deckID uuid.UUID, front, back 
 	return s.cards.Create(ctx, card)
 }
 
+func (s *CardService) CreateMany(ctx context.Context, deckID uuid.UUID, pairs []domain.Card) error {
+    deck, err := s.decks.FindByID(ctx, deckID)
+    if err != nil {
+        return err
+    }
+    if deck == nil {
+        return fmt.Errorf("deck %s not found", deckID)
+    }
+
+    cards := make([]domain.Card, len(pairs))
+    for i, p := range pairs {
+        cards[i] = domain.Card{
+            ID:     uuid.New(),
+            DeckID: deckID,
+            Front:  p.Front,
+            Back:   p.Back,
+        }
+    }
+
+    return s.cards.CreateMany(ctx, cards)
+}
+
 func (s *CardService) Delete(ctx context.Context, id uuid.UUID) error {
 	card, err := s.cards.FindByID(ctx, id)
 	if err != nil {

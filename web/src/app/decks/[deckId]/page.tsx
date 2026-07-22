@@ -87,7 +87,7 @@ export default function DeckDetailPage() {
           <div>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 text-slate-700 dark:text-slate-200 font-bold py-3 px-6 rounded-full text-xs transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-2 bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 text-slate-700 dark:text-slate-200 font-bold py-3 px-6 rounded-full text-xs transition-all shadow-sm cursor-pointer"
             >
               <Plus size={14} />
               {showForm ? "Close Form" : "Add Card"}
@@ -97,7 +97,7 @@ export default function DeckDetailPage() {
 
         {/* Add card form */}
         {showForm && (
-          <div className="bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 mb-8 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 mb-8 shadow-sm space-y-4">
             <h3 className="font-extrabold text-slate-900 dark:text-white text-base">New Card</h3>
             <div className="space-y-4">
               <div>
@@ -148,7 +148,7 @@ export default function DeckDetailPage() {
         )}
 
         {cards?.length === 0 && !showForm && (
-          <div className="text-center py-16 text-slate-400 dark:text-slate-500 bg-white dark:bg-[#0d1527]/40 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm">
+          <div className="text-center py-16 text-slate-400 dark:text-slate-500 bg-white dark:bg-[#222225]/40 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-sm">
             <BookOpen size={36} className="mx-auto mb-4 opacity-40 text-indigo-500" />
             <p className="font-bold text-slate-800 dark:text-white text-base">No cards yet</p>
             <p className="text-xs mt-1 text-slate-500 dark:text-slate-400">Add your first card to start studying</p>
@@ -159,7 +159,7 @@ export default function DeckDetailPage() {
           {cards?.map((card) => (
             <div
               key={card.id}
-              className="bg-white dark:bg-[#0d1527] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 flex gap-4 items-start shadow-sm transition-all hover:shadow-md"
+              className="bg-white dark:bg-[#222225] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 flex gap-4 items-start shadow-sm transition-all hover:shadow-md"
             >
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-1">

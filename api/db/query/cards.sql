@@ -21,6 +21,15 @@ INSERT INTO cards (id, deck_id, front, back, due_at)
 VALUES ($1, $2, $3, $4, NOW())
 RETURNING *;
 
+-- name: CreateManyCards :exec
+INSERT INTO cards (id, deck_id, front, back, due_at)
+SELECT
+  unnest($1::uuid[]),
+  unnest($2::uuid[]),
+  unnest($3::text[]),
+  unnest($4::text[]),
+  NOW();
+
 -- name: UpdateCardScheduling :exec
 UPDATE cards
 SET

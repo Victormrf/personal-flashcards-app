@@ -93,7 +93,7 @@ export default function StudyPage() {
   if (sessionDone || !cards || cards.length === 0) {
     return (
       <div className="flex-1 w-full flex items-center justify-center px-6 py-16">
-        <div className="text-center py-12 px-6 bg-white dark:bg-[#0d1527] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl max-w-md w-full shadow-sm">
+        <div className="text-center py-12 px-6 bg-white dark:bg-[#222225] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl max-w-md w-full shadow-sm">
           <p className="text-5xl mb-6">🎉</p>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Session complete!</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
@@ -145,7 +145,7 @@ export default function StudyPage() {
         {/* Card Study Interface */}
         <div className="flex-1 flex flex-col items-center justify-center py-6">
           <div
-            className="w-full min-h-[280px] bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex items-center justify-center cursor-pointer select-none shadow-sm hover:shadow-md transition-all duration-300"
+            className="w-full min-h-[280px] bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex items-center justify-center cursor-pointer select-none shadow-sm hover:shadow-md transition-all duration-300"
             style={{ perspective: "1000px" }}
             onClick={() => !isFlipped && setIsFlipped(true)}
           >

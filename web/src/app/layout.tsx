@@ -85,10 +85,10 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={theme}>
-      <body className="min-h-screen transition-colors duration-300 bg-[#f8f9fc] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 flex flex-col font-sans">
+      <body className="min-h-screen transition-colors duration-300 bg-[#faf7f2] dark:bg-[#161618] text-stone-800 dark:text-stone-200 flex flex-col font-sans">
         <QueryClientProvider client={queryClient}>
           {!isLoginPage && (
-            <header className="border-b border-gray-200/80 dark:border-gray-800/80 bg-white/70 dark:bg-[#0d1527]/70 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between transition-colors duration-300">
+            <header className="border-b border-stone-200/80 dark:border-stone-800/80 bg-[#faf7f2]/80 dark:bg-[#161618]/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between transition-colors duration-300">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
                 <img src="/recall-logo.svg" alt="Recall logo" className="w-8 h-8 rounded-xl shadow-sm" />
                 <span className="text-xl font-black tracking-wider text-indigo-900 dark:text-white uppercase">
@@ -119,7 +119,7 @@ export default function RootLayout({
           </div>
 
           {!isLoginPage && (
-            <footer className="border-t border-gray-200/80 dark:border-gray-800/80 bg-white/50 dark:bg-[#0d1527]/30 py-8 px-6 flex flex-col items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400 text-center transition-colors duration-300">
+            <footer className="border-t border-stone-200/80 dark:border-stone-800/80 bg-[#faf7f2]/60 dark:bg-[#161618]/40 py-8 px-6 flex flex-col items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400 text-center transition-colors duration-300">
               <div>
                 © 2026 Victor Fernandes · All rights reserved
               </div>

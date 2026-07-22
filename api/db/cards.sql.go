@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const createCard = `-- name: CreateCard :one
@@ -45,6 +46,33 @@ func (q *Queries) CreateCard(ctx context.Context, arg CreateCardParams) (Card, e
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const createManyCards = `-- name: CreateManyCards :exec
+INSERT INTO cards (id, deck_id, front, back, due_at)
+SELECT
+  unnest($1::uuid[]),
+  unnest($2::uuid[]),
+  unnest($3::text[]),
+  unnest($4::text[]),
+  NOW()
+`
+
+type CreateManyCardsParams struct {
+	Column1 []uuid.UUID `json:"column_1"`
+	Column2 []uuid.UUID `json:"column_2"`
+	Column3 []string    `json:"column_3"`
+	Column4 []string    `json:"column_4"`
+}
+
+func (q *Queries) CreateManyCards(ctx context.Context, arg CreateManyCardsParams) error {
+	_, err := q.db.ExecContext(ctx, createManyCards,
+		pq.Array(arg.Column1),
+		pq.Array(arg.Column2),
+		pq.Array(arg.Column3),
+		pq.Array(arg.Column4),
+	)
+	return err
 }
 
 const deleteCard = `-- name: DeleteCard :exec

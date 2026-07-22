@@ -3,13 +3,13 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8f9fc;
-  --foreground: #090d16;
+  --background: #faf7f2;
+  --foreground: #2b2825;
 }
 
 .dark {
-  --background: #090d16;
-  --foreground: #f8f9fc;
+  --background: #161618;
+  --foreground: #e6e4e0;
 }
 
 @theme inline {

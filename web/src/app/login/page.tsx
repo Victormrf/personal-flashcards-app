@@ -29,7 +29,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex-1 w-full flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md bg-white dark:bg-[#0d1527] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-8 shadow-sm space-y-6">
+      <div className="w-full max-w-md bg-white dark:bg-[#222225] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-8 shadow-sm space-y-6">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-950 dark:text-white leading-tight">Recall</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Sign in to continue studying</p>

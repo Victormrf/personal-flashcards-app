@@ -47,7 +47,7 @@ export default function NewDeckPage() {
           Back to Dashboard
         </button>
 
-        <div className="bg-white dark:bg-[#0d1527] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-8 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-[#222225] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-8 shadow-sm space-y-6">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-950 dark:text-white">New Deck</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
@@ -107,7 +107,7 @@ export default function NewDeckPage() {
 
               {/* Existing category suggestions */}
               {showSuggestions && filteredSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden z-10 shadow-lg">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden z-10 shadow-lg">
                   {filteredSuggestions.map((cat) => {
                     const c = categoryColor(cat);
                     return (
