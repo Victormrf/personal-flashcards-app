@@ -44,10 +44,19 @@ func (r *cardRepository) FindByDeck(ctx context.Context, deckID uuid.UUID) ([]do
 }
 
 func (r *cardRepository) FindDue(ctx context.Context, p repository.FindDueParams) ([]domain.Card, error) {
+	var deckID uuid.NullUUID
+	if p.DeckID != nil {
+		deckID = uuid.NullUUID{
+			UUID:  *p.DeckID,
+			Valid: true,
+		}
+	}
+
 	rows, err := r.q.GetDueCards(ctx, db.GetDueCardsParams{
 		UserID: p.UserID,
 		DueAt:  p.Before,
 		Limit:  p.Limit,
+		DeckID: deckID,
 	})
 	if err != nil {
 		return nil, err

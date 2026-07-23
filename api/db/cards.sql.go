@@ -150,19 +150,26 @@ SELECT id, deck_id, front, back, ease_factor, interval_days, repetitions, due_at
 WHERE deck_id IN (
     SELECT id FROM decks WHERE user_id = $1
 )
-AND due_at <= $2
+AND ($2::uuid IS NULL OR deck_id = $2)
+AND due_at <= $3
 ORDER BY due_at ASC
-LIMIT $3
+LIMIT $4
 `
 
 type GetDueCardsParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	DueAt  time.Time `json:"due_at"`
-	Limit  int32     `json:"limit"`
+	UserID uuid.UUID     `json:"user_id"`
+	DeckID uuid.NullUUID `json:"deck_id"`
+	DueAt  time.Time     `json:"due_at"`
+	Limit  int32         `json:"limit"`
 }
 
 func (q *Queries) GetDueCards(ctx context.Context, arg GetDueCardsParams) ([]Card, error) {
-	rows, err := q.db.QueryContext(ctx, getDueCards, arg.UserID, arg.DueAt, arg.Limit)
+	rows, err := q.db.QueryContext(ctx, getDueCards,
+		arg.UserID,
+		arg.DeckID,
+		arg.DueAt,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
