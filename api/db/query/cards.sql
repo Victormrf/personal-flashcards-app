@@ -5,11 +5,12 @@ WHERE id = $1;
 -- name: GetDueCards :many
 SELECT * FROM cards
 WHERE deck_id IN (
-    SELECT id FROM decks WHERE user_id = $1
+    SELECT id FROM decks WHERE user_id = sqlc.arg('user_id')
 )
-AND due_at <= $2
+AND (sqlc.narg('deck_id')::uuid IS NULL OR deck_id = sqlc.narg('deck_id'))
+AND due_at <= sqlc.arg('due_at')
 ORDER BY due_at ASC
-LIMIT $3;
+LIMIT sqlc.arg('limit');
 
 -- name: GetCardsByDeck :many
 SELECT * FROM cards
