@@ -62,7 +62,7 @@ Authorization: Bearer {{authToken}}
 ###
 
 ### 6. Delete a deck
-DELETE {{baseUrl}}/decks/{{deckId}}
+DELETE {{baseUrl}}/decks/45d09c5e-0d22-46cc-bd80-26aae41d872c
 Authorization: Bearer {{authToken}}
 
 ###

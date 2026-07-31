@@ -15,6 +15,7 @@ export default function DeckDetailPage() {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data: deck } = useQuery<Deck>({
     queryKey: ["deck", deckId],
@@ -44,9 +45,19 @@ export default function DeckDetailPage() {
     },
   });
 
+  const deleteDeck = useMutation({
+    mutationFn: () => api.delete(`/decks/${deckId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["decks"] });
+      queryClient.invalidateQueries({ queryKey: ["due-cards"] });
+      router.push("/");
+    },
+  });
+
   return (
     <div className="flex-1 w-full flex flex-col justify-start">
       <main className="max-w-3xl w-full mx-auto px-6 py-12 flex-1">
+
         {/* Navigation & Study Action */}
         <div className="flex items-center justify-between mb-8">
           <button
@@ -84,13 +95,22 @@ export default function DeckDetailPage() {
               </p>
             )}
           </div>
-          <div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowForm(!showForm)}
               className="flex items-center gap-2 bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 text-slate-700 dark:text-slate-200 font-bold py-3 px-6 rounded-full text-xs transition-all shadow-sm cursor-pointer"
             >
               <Plus size={14} />
               {showForm ? "Close Form" : "Add Card"}
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-2 bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 hover:border-red-400 dark:hover:border-red-500 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 font-bold py-3 px-4 rounded-full text-xs transition-all shadow-sm cursor-pointer"
+              aria-label="Delete deck"
+            >
+              <Trash2 size={14} />
             </button>
           </div>
         </div>
@@ -186,6 +206,64 @@ export default function DeckDetailPage() {
           ))}
         </div>
       </main>
+
+      {/* Delete deck confirmation modal */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+          {/* Modal */}
+          <div
+            className="relative bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Icon */}
+            <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-950/40 flex items-center justify-center mx-auto mb-5">
+              <Trash2 size={24} className="text-red-500" />
+            </div>
+
+            {/* Text */}
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white text-center">
+              Delete deck?
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm text-center mt-2 leading-relaxed">
+              <span className="font-bold text-slate-700 dark:text-slate-300">
+                {deck?.name}
+              </span>{" "}
+              and all its cards will be permanently deleted. This cannot be undone.
+            </p>
+
+            {/* Error */}
+            {deleteDeck.isError && (
+              <p className="text-red-500 dark:text-red-400 text-xs font-medium text-center mt-3">
+                Failed to delete deck. Please try again.
+              </p>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-3 mt-7">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteDeck.isPending}
+                className="flex-1 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold py-3 rounded-full text-xs transition-all disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteDeck.mutate()}
+                disabled={deleteDeck.isPending}
+                className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold py-3 rounded-full text-xs transition-all shadow-md shadow-red-500/20 cursor-pointer"
+              >
+                {deleteDeck.isPending ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
