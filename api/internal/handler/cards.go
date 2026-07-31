@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/Victormrf/personal-flashcards-app/internal/domain"
 	"github.com/Victormrf/personal-flashcards-app/internal/service"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 type CardHandler struct {
@@ -96,9 +96,9 @@ func (h *CardHandler) CreateMany(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    if len(req.Cards) > 500 {
+    if len(req.Cards) > 1500 {
         writeJSON(w, http.StatusBadRequest, map[string]string{
-            "error": "maximum 500 cards per import",
+            "error": "maximum 1500 cards per import",
         })
         return
     }
