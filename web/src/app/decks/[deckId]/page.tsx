@@ -2,57 +2,38 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/api";
-import { Card, Deck } from "@/types";
 import { Plus, Trash2, BookOpen, ArrowLeft } from "lucide-react";
+import { useDeck, useDeleteDeck } from "@/hooks/useDeck";
+import { useCards, useCreateCard, useDeleteCard } from "@/hooks/useCards";
 
 export default function DeckDetailPage() {
   const { deckId } = useParams<{ deckId: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const { data: deck } = useQuery<Deck>({
-    queryKey: ["deck", deckId],
-    queryFn: () => api.get(`/decks/${deckId}`).then((r) => r.data),
-  });
+  const { data: deck } = useDeck(deckId);
+  const { data: cards, isLoading } = useCards(deckId);
+  const createCard = useCreateCard(deckId);
+  const deleteCard = useDeleteCard(deckId);
+  const deleteDeck = useDeleteDeck();
 
-  const { data: cards, isLoading } = useQuery<Card[]>({
-    queryKey: ["cards", deckId],
-    queryFn: () => api.get(`/decks/${deckId}/cards`).then((r) => r.data),
-  });
-
-  const createCard = useMutation({
-    mutationFn: () =>
-      api.post(`/decks/${deckId}/cards`, { front, back }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards", deckId] });
-      setFront("");
-      setBack("");
-      setShowForm(false);
-    },
-  });
-
-  const deleteCard = useMutation({
-    mutationFn: (cardId: string) => api.delete(`/cards/${cardId}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards", deckId] });
-    },
-  });
-
-  const deleteDeck = useMutation({
-    mutationFn: () => api.delete(`/decks/${deckId}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["decks"] });
-      queryClient.invalidateQueries({ queryKey: ["due-cards"] });
-      router.push("/");
-    },
-  });
+  const handleCreateCard = () => {
+    if (!front.trim() || !back.trim()) return;
+    createCard.mutate(
+      { front, back },
+      {
+        onSuccess: () => {
+          setFront("");
+          setBack("");
+          setShowForm(false);
+        },
+      }
+    );
+  };
 
   return (
     <div className="flex-1 w-full flex flex-col justify-start">
@@ -142,7 +123,7 @@ export default function DeckDetailPage() {
               </div>
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => createCard.mutate()}
+                  onClick={handleCreateCard}
                   disabled={!front.trim() || !back.trim() || createCard.isPending}
                   className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold px-6 py-2.5 rounded-full transition-all cursor-pointer"
                 >
@@ -254,7 +235,7 @@ export default function DeckDetailPage() {
                 Cancel
               </button>
               <button
-                onClick={() => deleteDeck.mutate()}
+                onClick={() => deleteDeck.mutate(deckId)}
                 disabled={deleteDeck.isPending}
                 className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold py-3 rounded-full text-xs transition-all shadow-md shadow-red-500/20 cursor-pointer"
               >

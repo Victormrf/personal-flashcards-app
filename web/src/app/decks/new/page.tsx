@@ -2,37 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/api";
 import { categoryColor } from "@/lib/categoryColor";
 import { ArrowLeft } from "lucide-react";
+import { useCategories, useCreateDeck } from "@/hooks/useDeck";
 
 export default function NewDeckPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const { data: categories } = useQuery<string[]>({
-    queryKey: ["categories"],
-    queryFn: () => api.get("/categories").then((r) => r.data),
-  });
+  const { data: categories } = useCategories();
+  const createDeck = useCreateDeck();
 
   const filteredSuggestions = categories?.filter(
     (c) => c.toLowerCase().includes(category.toLowerCase()) && c !== category
   ) ?? [];
-
-  const createDeck = useMutation({
-    mutationFn: () => api.post("/decks", { name, description, category }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["decks"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      router.push("/");
-    },
-  });
 
   const colors = categoryColor(category);
 
@@ -161,7 +148,7 @@ export default function NewDeckPage() {
             )}
 
             <button
-              onClick={() => createDeck.mutate()}
+              onClick={() => createDeck.mutate({ name, description, category })}
               disabled={!name.trim() || createDeck.isPending}
               className="w-full bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-full text-xs transition-all shadow-md shadow-slate-900/10 dark:shadow-indigo-500/10 cursor-pointer"
             >
