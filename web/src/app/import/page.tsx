@@ -2,17 +2,15 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/api";
 import { categoryColor } from "@/lib/categoryColor";
 import { parseAnkiFile, ParsedCard } from "@/lib/parseAnkiFile";
 import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { useCategories, useImportDeck } from "@/hooks/useDeck";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
 export default function ImportPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("upload");
@@ -24,10 +22,8 @@ export default function ImportPage() {
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
 
-  const { data: categories } = useQuery<string[]>({
-    queryKey: ["categories"],
-    queryFn: () => api.get("/categories").then((r) => r.data),
-  });
+  const { data: categories } = useCategories();
+  const importMutation = useImportDeck();
 
   const filteredSuggestions = categories?.filter(
     (c) => c.toLowerCase().includes(category.toLowerCase()) && c !== category
@@ -61,33 +57,25 @@ export default function ImportPage() {
     reader.readAsText(file);
   }
 
-  // Step 2 — create deck then batch create cards
-  const importMutation = useMutation({
-    mutationFn: async () => {
-      // Create the deck first
-      const deckRes = await api.post("/decks", {
+  // Step 2 — create deck then batch create cards using useImportDeck
+  const handleImport = () => {
+    importMutation.mutate(
+      {
         name: deckName,
-        description: `Imported from ${fileName}`,
         category,
-      });
-      const deckId = deckRes.data.id;
-
-      // Batch create all cards
-      await api.post(`/decks/${deckId}/cards/batch`, {
+        fileName,
         cards: parsedCards.map((c) => ({ front: c.front, back: c.back })),
-      });
-
-      return deckId;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["decks"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      setStep("done");
-    },
-    onError: () => {
-      setError("Import failed. Please try again.");
-    },
-  });
+      },
+      {
+        onSuccess: () => {
+          setStep("done");
+        },
+        onError: () => {
+          setError("Import failed. Please try again.");
+        },
+      }
+    );
+  };
 
   return (
     <div className="flex-1 w-full flex flex-col justify-start">
@@ -312,7 +300,7 @@ What is an interface?\tA set of method signatures`}
                   Choose different file
                 </button>
                 <button
-                  onClick={() => importMutation.mutate()}
+                  onClick={handleImport}
                   disabled={!deckName.trim() || importMutation.isPending}
                   className="flex-2 flex-1 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-full text-xs transition-all shadow-md cursor-pointer"
                 >

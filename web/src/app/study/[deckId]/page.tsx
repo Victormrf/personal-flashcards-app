@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/api";
-import { Card } from "@/types";
 import { ArrowLeft } from "lucide-react";
+import { useDueCards } from "@/hooks/useCards";
+import { useSubmitReview } from "@/hooks/useReviews";
 
 const RATINGS = [
   { value: 1, label: "Again",  color: "bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 dark:text-rose-400 border border-rose-150 dark:border-rose-900/30",    key: "1" },
@@ -17,38 +16,39 @@ const RATINGS = [
 export default function StudyPage() {
   const { deckId } = useParams<{ deckId: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [sessionDone, setSessionDone] = useState(false);
 
-  const { data: cards, isLoading } = useQuery<Card[]>({
-    queryKey: ["due-cards", deckId],
-    queryFn: () =>
-      api.get(`/study?deck_id=${deckId}`).then((r) => r.data),
-  });
+  const { data: cards, isLoading } = useDueCards(deckId);
+  const reviewMutation = useSubmitReview();
 
-  const reviewMutation = useMutation({
-    mutationFn: ({ cardId, rating }: { cardId: string; rating: number }) =>
-      api.post(`/cards/${cardId}/review`, {
-        rating,
-        response_ms: Date.now() - startTime,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["due-cards"] });
-
-      const next = currentIndex + 1;
-      if (cards && next >= cards.length) {
-        setSessionDone(true);
-      } else {
-        setCurrentIndex(next);
-        setIsFlipped(false);
-        setStartTime(Date.now());
-      }
+  const handleRating = useCallback(
+    (cardId: string, rating: number) => {
+      reviewMutation.mutate(
+        {
+          cardId,
+          rating,
+          responseMs: Date.now() - startTime,
+        },
+        {
+          onSuccess: () => {
+            const next = currentIndex + 1;
+            if (cards && next >= cards.length) {
+              setSessionDone(true);
+            } else {
+              setCurrentIndex(next);
+              setIsFlipped(false);
+              setStartTime(Date.now());
+            }
+          },
+        }
+      );
     },
-  });
+    [cards, currentIndex, reviewMutation, startTime]
+  );
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback(
@@ -61,14 +61,11 @@ export default function StudyPage() {
         return;
       }
       const rating = RATINGS.find((r) => r.key === e.key);
-      if (rating && cards) {
-        reviewMutation.mutate({
-          cardId: cards[currentIndex].id,
-          rating: rating.value,
-        });
+      if (rating && cards && cards[currentIndex]) {
+        handleRating(cards[currentIndex].id, rating.value);
       }
     },
-    [isFlipped, cards, currentIndex, reviewMutation]
+    [isFlipped, cards, currentIndex, handleRating]
   );
 
   useEffect(() => {
@@ -199,9 +196,7 @@ export default function StudyPage() {
               {RATINGS.map((rating) => (
                 <button
                   key={rating.value}
-                  onClick={() =>
-                    reviewMutation.mutate({ cardId: card.id, rating: rating.value })
-                  }
+                  onClick={() => handleRating(card.id, rating.value)}
                   disabled={reviewMutation.isPending}
                   className={`flex-1 ${rating.color} disabled:opacity-50 font-bold py-3.5 rounded-full transition-all text-xs cursor-pointer shadow-sm`}
                 >

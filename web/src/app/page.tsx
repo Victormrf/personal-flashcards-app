@@ -1,32 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import api from "@/lib/api";
 import { categoryColor } from "@/lib/categoryColor";
-import { Deck, Card } from "@/types";
+import { useDecks, useCategories } from "@/hooks/useDeck";
+import { useDueCards } from "@/hooks/useCards";
 import { BookOpen, Plus, Upload } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const { data: decks, isLoading } = useQuery<Deck[]>({
-    queryKey: ["decks"],
-    queryFn: () => api.get("/decks").then((r) => r.data),
-  });
-
-  const { data: dueCards } = useQuery<Card[]>({
-    queryKey: ["due-cards"],
-    queryFn: () => api.get("/study").then((r) => r.data),
-  });
-
-  const { data: categories } = useQuery<string[]>({
-    queryKey: ["categories"],
-    queryFn: () => api.get("/categories").then((r) => r.data),
-  });
+  const { data: decks, isLoading } = useDecks();
+  const { data: dueCards } = useDueCards();
+  const { data: categories } = useCategories();
 
   const filteredDecks = activeCategory
     ? decks?.filter((d) => d.category === activeCategory)
