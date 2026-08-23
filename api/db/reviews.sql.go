@@ -40,6 +40,35 @@ func (q *Queries) CreateReviewLog(ctx context.Context, arg CreateReviewLogParams
 	return err
 }
 
+const getCurrentStreak = `-- name: GetCurrentStreak :one
+WITH daily_reviews AS (
+    SELECT DISTINCT DATE(reviewed_at) AS review_date
+    FROM review_logs
+    WHERE user_id = $1
+),
+streak AS (
+    SELECT review_date,
+           review_date - (ROW_NUMBER() OVER (ORDER BY review_date))::int AS grp
+    FROM daily_reviews
+)
+SELECT COUNT(*)::int AS streak
+FROM streak
+WHERE grp = (
+    SELECT grp FROM streak
+    WHERE review_date = CURRENT_DATE
+       OR review_date = CURRENT_DATE - 1
+    ORDER BY review_date DESC
+    LIMIT 1
+)
+`
+
+func (q *Queries) GetCurrentStreak(ctx context.Context, userID uuid.UUID) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getCurrentStreak, userID)
+	var streak int32
+	err := row.Scan(&streak)
+	return streak, err
+}
+
 const getReviewLogsByUser = `-- name: GetReviewLogsByUser :many
 SELECT id, card_id, user_id, rating, interval_days, ease_factor, response_ms, reviewed_at FROM review_logs
 WHERE user_id = $1
@@ -82,4 +111,77 @@ func (q *Queries) GetReviewLogsByUser(ctx context.Context, arg GetReviewLogsByUs
 		return nil, err
 	}
 	return items, nil
+}
+
+const getWeeklyStatsByDeck = `-- name: GetWeeklyStatsByDeck :many
+SELECT
+    d.name                                                           AS deck_name,
+    COUNT(*)::int                                                    AS total_reviewed,
+    COUNT(*) FILTER (WHERE rl.rating >= 3)::int                     AS total_correct
+FROM review_logs rl
+JOIN cards  c ON c.id  = rl.card_id
+JOIN decks  d ON d.id  = c.deck_id
+WHERE rl.user_id    = $1
+  AND rl.reviewed_at >= NOW() - INTERVAL '7 days'
+GROUP BY d.id, d.name
+ORDER BY total_reviewed DESC
+`
+
+type GetWeeklyStatsByDeckRow struct {
+	DeckName      string `json:"deck_name"`
+	TotalReviewed int32  `json:"total_reviewed"`
+	TotalCorrect  int32  `json:"total_correct"`
+}
+
+func (q *Queries) GetWeeklyStatsByDeck(ctx context.Context, userID uuid.UUID) ([]GetWeeklyStatsByDeckRow, error) {
+	rows, err := q.db.QueryContext(ctx, getWeeklyStatsByDeck, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWeeklyStatsByDeckRow
+	for rows.Next() {
+		var i GetWeeklyStatsByDeckRow
+		if err := rows.Scan(&i.DeckName, &i.TotalReviewed, &i.TotalCorrect); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWeeklySummary = `-- name: GetWeeklySummary :one
+SELECT
+    COUNT(*)::int                                                    AS total_reviewed,
+    COUNT(*) FILTER (WHERE rating >= 3)::int                        AS total_correct,
+    COUNT(DISTINCT DATE(reviewed_at))::int                          AS days_studied,
+    COUNT(DISTINCT card_id)::int                                     AS unique_cards
+FROM review_logs
+WHERE user_id    = $1
+  AND reviewed_at >= NOW() - INTERVAL '7 days'
+`
+
+type GetWeeklySummaryRow struct {
+	TotalReviewed int32 `json:"total_reviewed"`
+	TotalCorrect  int32 `json:"total_correct"`
+	DaysStudied   int32 `json:"days_studied"`
+	UniqueCards   int32 `json:"unique_cards"`
+}
+
+func (q *Queries) GetWeeklySummary(ctx context.Context, userID uuid.UUID) (GetWeeklySummaryRow, error) {
+	row := q.db.QueryRowContext(ctx, getWeeklySummary, userID)
+	var i GetWeeklySummaryRow
+	err := row.Scan(
+		&i.TotalReviewed,
+		&i.TotalCorrect,
+		&i.DaysStudied,
+		&i.UniqueCards,
+	)
+	return i, err
 }

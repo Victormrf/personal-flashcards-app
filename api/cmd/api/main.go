@@ -2,14 +2,18 @@ package main
 
 import (
 	"database/sql"
-	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"context"
+    "os/signal"
+    "syscall"
+	
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
+	"github.com/google/uuid"
 
 	"github.com/Victormrf/personal-flashcards-app/config"
 	db "github.com/Victormrf/personal-flashcards-app/db"
@@ -19,6 +23,8 @@ import (
 	"github.com/Victormrf/personal-flashcards-app/internal/service"
 	"github.com/Victormrf/personal-flashcards-app/internal/cache"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/Victormrf/personal-flashcards-app/internal/email"
+    "github.com/Victormrf/personal-flashcards-app/internal/scheduler"
 )
 
 func main() {
@@ -58,6 +64,24 @@ func main() {
 	reviewSvc := service.NewReviewService(cardRepo, reviewRepo, redisCache)
 	authSvc   := service.NewAuthService(userRepo, cfg.JWTSecret)
 
+	// Wire weekly summary (optional — only if config is provided)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	var summarySvc *service.SummaryService
+	userID, err := uuid.Parse(cfg.SummaryUserID)
+
+	if err != nil {
+		log.Println("weekly summary disabled: invalid SUMMARY_USER_ID")
+	} else if cfg.ResendAPIKey != "" && cfg.SummaryEmail != "" {
+		mailer     := email.NewClient(cfg.ResendAPIKey)
+		summarySvc = service.NewSummaryService(queries, mailer, cfg.SummaryEmail, userID)
+		sched      := scheduler.New(summarySvc, cfg.SummaryCronHour)
+		sched.Start(ctx)
+	} else {
+		log.Println("weekly summary disabled: RESEND_API_KEY or SUMMARY_EMAIL not set")
+	}
+
 	// 6. Wire handlers
 	cardH   := handler.NewCardHandler(cardSvc)
 	deckH   := handler.NewDeckHandler(deckSvc)
@@ -75,6 +99,21 @@ func main() {
 	r.Handle("/metrics", promhttp.Handler())
 	r.Post("/api/v1/auth/register", authH.Register)
 	r.Post("/api/v1/auth/login",    authH.Login)
+	// Debug only
+	if cfg.Env == "development" {
+		r.Post("/debug/summary", func(w http.ResponseWriter, r *http.Request) {
+			if summarySvc == nil {
+				http.Error(w, "weekly summary service is not configured", http.StatusBadRequest)
+				return
+			}
+			if err := summarySvc.Send(r.Context()); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("summary sent"))
+		})
+	}
 
 	// Protected routes — JWT required
 	r.Group(func(r chi.Router) {

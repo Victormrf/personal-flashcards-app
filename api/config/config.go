@@ -3,35 +3,46 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL string
-	RedisURL    string
-	JWTSecret   string
-	Port        string
-	Env         string
+	DatabaseURL 	string
+	RedisURL    	string
+	JWTSecret   	string
+	Port        	string
+	Env         	string
+	ResendAPIKey   	string
+    SummaryEmail   	string
+	SummaryUserID   string
+    SummaryCronHour int
 }
 
 func Load() Config {
-	// In production this file won't exist and that's fine —
-	// godotenv.Load silently does nothing if .env is missing
 	godotenv.Load()
 
+	cronHour := 9
+    if h := os.Getenv("SUMMARY_CRON_HOUR"); h != "" {
+        if parsed, err := strconv.Atoi(h); err == nil {
+            cronHour = parsed
+        }
+    }
+
 	return Config{
-		DatabaseURL: mustGetenv("DATABASE_URL"),
-		JWTSecret:   mustGetenv("JWT_SECRET"),
-		RedisURL:    getenvOrDefault("REDIS_URL", "redis://localhost:6379"),
-		Port:        getenvOrDefault("PORT", "8080"),
-		Env:         getenvOrDefault("ENV", "development"),
+		DatabaseURL: 		mustGetenv("DATABASE_URL"),
+		JWTSecret:   		mustGetenv("JWT_SECRET"),
+		RedisURL:    		getenvOrDefault("REDIS_URL", "redis://localhost:6379"),
+		Port:        		getenvOrDefault("PORT", "8080"),
+		Env:         		getenvOrDefault("ENV", "development"),
+		ResendAPIKey:    	getenvOrDefault("RESEND_API_KEY", ""),
+        SummaryEmail:    	getenvOrDefault("SUMMARY_EMAIL", ""),
+		SummaryUserID:   	getenvOrDefault("SUMMARY_USER_ID", ""),
+        SummaryCronHour: 	cronHour,
 	}
 }
 
-// mustGetenv panics at startup if a required variable is missing.
-// Failing fast here is intentional — a misconfigured app should
-// never start silently.
 func mustGetenv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
