@@ -121,6 +121,86 @@ export default function DeckDetailPage() {
           </div>
         </div>
 
+        {/* ── SOURCES ── */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
+              <Link2 size={12} />
+              Sources
+            </span>
+            <button
+              onClick={() => setShowSourceForm(!showSourceForm)}
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Plus size={12} />
+              Add source
+            </button>
+          </div>
+
+          {deck?.sources && deck.sources.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {deck.sources.map((source, idx) => (
+                <div key={idx} className="flex items-center gap-2 bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-full px-3 py-1.5 group">
+                  {source.url ? (
+                    <a href={source.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors">
+                      <ExternalLink size={11} />
+                      {source.label}
+                    </a>
+                  ) : (
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{source.label}</span>
+                  )}
+                  <button onClick={() => handleRemoveSource(idx)} className="text-slate-300 dark:text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer" aria-label="Remove source">
+                    <X size={11} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            !showSourceForm && (
+              <p className="text-xs text-slate-400 dark:text-slate-600 italic">
+                No sources yet — add articles, videos, or books that inspired this deck.
+              </p>
+            )
+          )}
+
+          {showSourceForm && (
+            <div className="bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
+                  Label <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={sourceLabel}
+                  onChange={(e) => setSourceLabel(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                  placeholder="e.g. Redis docs, System Design Primer"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
+                  URL <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-slate-600">optional</span>
+                </label>
+                <input
+                  type="url"
+                  value={sourceURL}
+                  onChange={(e) => setSourceURL(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button onClick={handleAddSource} disabled={!sourceLabel.trim() || updateSources.isPending} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold px-5 py-2 rounded-full transition-all cursor-pointer">
+                  {updateSources.isPending ? "Saving..." : "Add"}
+                </button>
+                <button onClick={() => { setShowSourceForm(false); setSourceLabel(""); setSourceURL(""); }} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white text-xs font-bold px-4 py-2 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Add card form */}
         {showForm && (
           <div className="bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 mb-8 shadow-sm space-y-4">
