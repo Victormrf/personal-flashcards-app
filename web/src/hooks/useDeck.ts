@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { deckService, CreateDeckParams, ImportDeckParams } from "@/services/deckService";
-import { Deck } from "@/types";
+import { Deck, DeckSource } from "@/types";
 
 // ── Query keys ──────────────────────────────────────────────────
 // Centralised here so every hook that touches decks uses
@@ -73,6 +73,20 @@ export function useDeleteDeck() {
       queryClient.invalidateQueries({ queryKey: deckKeys.all() });
       queryClient.invalidateQueries({ queryKey: ["due-cards"] });
       router.push("/");
+    },
+  });
+}
+
+// ── useUpdateSources ───────────────────────────────────────────────
+
+export function useUpdateSources(deckId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sources: DeckSource[]) =>
+      deckService.updateSources(deckId, sources),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: deckKeys.detail(deckId) });
     },
   });
 }

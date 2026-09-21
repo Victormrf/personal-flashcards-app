@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useDueCards } from "@/hooks/useCards";
 import { useSubmitReview } from "@/hooks/useReviews";
+import { Card } from "@/types";
 
 const RATINGS = [
   { value: 1, label: "Again",  color: "bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 dark:text-rose-400 border border-rose-150 dark:border-rose-900/30",    key: "1" },
@@ -21,9 +22,16 @@ export default function StudyPage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [sessionDone, setSessionDone] = useState(false);
+  const [sessionCards, setSessionCards] = useState<Card[] | null>(null);
 
-  const { data: cards, isLoading } = useDueCards(deckId);
+  const { data: dueCards, isLoading } = useDueCards(deckId);
   const reviewMutation = useSubmitReview();
+
+  useEffect(() => {
+    if (dueCards && sessionCards === null) {
+      setSessionCards(dueCards);
+    }
+  }, [dueCards, sessionCards]);
 
   const handleRating = useCallback(
     (cardId: string, rating: number) => {
@@ -36,7 +44,7 @@ export default function StudyPage() {
         {
           onSuccess: () => {
             const next = currentIndex + 1;
-            if (cards && next >= cards.length) {
+            if (sessionCards && next >= sessionCards.length) {
               setSessionDone(true);
             } else {
               setCurrentIndex(next);
@@ -47,7 +55,7 @@ export default function StudyPage() {
         }
       );
     },
-    [cards, currentIndex, reviewMutation, startTime]
+    [sessionCards, currentIndex, reviewMutation, startTime]
   );
 
   // Keyboard shortcuts
@@ -61,11 +69,11 @@ export default function StudyPage() {
         return;
       }
       const rating = RATINGS.find((r) => r.key === e.key);
-      if (rating && cards && cards[currentIndex]) {
-        handleRating(cards[currentIndex].id, rating.value);
+      if (rating && sessionCards && sessionCards[currentIndex]) {
+        handleRating(sessionCards[currentIndex].id, rating.value);
       }
     },
-    [isFlipped, cards, currentIndex, handleRating]
+    [isFlipped, sessionCards, currentIndex, handleRating]
   );
 
   useEffect(() => {
@@ -78,7 +86,7 @@ export default function StudyPage() {
     setStartTime(Date.now());
   }, [currentIndex]);
 
-  if (isLoading) {
+  if (isLoading || !sessionCards) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 gap-3">
         <div className="w-8 h-8 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
@@ -87,16 +95,16 @@ export default function StudyPage() {
     );
   }
 
-  if (sessionDone || !cards || cards.length === 0) {
+  if (sessionDone || sessionCards.length === 0 || currentIndex >= sessionCards.length) {
     return (
       <div className="flex-1 w-full flex items-center justify-center px-6 py-16">
         <div className="text-center py-12 px-6 bg-white dark:bg-[#222225] border border-slate-200/80 dark:border-slate-800/80 rounded-3xl max-w-md w-full shadow-sm">
           <p className="text-5xl mb-6">🎉</p>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Session complete!</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-            {!cards || cards.length === 0
+            {sessionCards.length === 0
               ? "No cards due for this deck."
-              : `You reviewed ${cards.length} cards.`}
+              : `You reviewed ${sessionCards.length} card${sessionCards.length > 1 ? "s" : ""}.`}
           </p>
           <button
             onClick={() => router.push("/")}
@@ -109,8 +117,8 @@ export default function StudyPage() {
     );
   }
 
-  const card = cards[currentIndex];
-  const progress = (currentIndex / cards.length) * 100;
+  const card = sessionCards[currentIndex];
+  const progress = (currentIndex / sessionCards.length) * 100;
 
   return (
     <div className="flex-1 w-full flex flex-col justify-start">
@@ -126,7 +134,7 @@ export default function StudyPage() {
               Quit Study
             </button>
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-              {currentIndex + 1} / {cards.length} Cards
+              {currentIndex + 1} / {sessionCards.length} Cards
             </span>
           </div>
 

@@ -5,12 +5,18 @@ export interface User {
   created_at: string;
 }
 
+export interface DeckSource {
+  label: string;
+  url?: string;
+}
+
 export interface Deck {
   id: string;
   user_id: string;
   name: string;
   description: string;
   category: string;
+  sources: DeckSource[];
   created_at: string;
 }
 

@@ -18,14 +18,20 @@ type Card struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
+type DeckSource struct {
+    Label string `json:"label"`
+    URL   string `json:"url,omitempty"`
+}
+
 type Deck struct {
-	ID          uuid.UUID  `json:"id"`
-	UserID      uuid.UUID  `json:"user_id"`
-	ParentID    *uuid.UUID `json:"parent_id,omitempty"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Category    string     `json:"category"`	
-	CreatedAt   time.Time  `json:"created_at"`
+	ID          uuid.UUID    `json:"id"`
+	UserID      uuid.UUID    `json:"user_id"`
+	ParentID    *uuid.UUID 	 `json:"parent_id,omitempty"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Category    string       `json:"category"`
+	Sources     []DeckSource `json:"sources"`
+	CreatedAt   time.Time    `json:"created_at"`
 }
 
 type ReviewLog struct {
