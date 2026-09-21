@@ -4,8 +4,9 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { categoryColor } from "@/lib/categoryColor";
 import { parseAnkiFile, ParsedCard } from "@/lib/parseAnkiFile";
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, ExternalLink, Plus, X } from "lucide-react";
 import { useCategories, useImportDeck } from "@/hooks/useDeck";
+import { DeckSource } from "@/types";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
@@ -21,6 +22,11 @@ export default function ImportPage() {
   const [skipped, setSkipped] = useState(0);
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
+
+  const [sources, setSources]             = useState<DeckSource[]>([]);
+const [showSourceForm, setShowSourceForm] = useState(false);
+const [sourceLabel, setSourceLabel]     = useState("");
+const [sourceURL, setSourceURL]         = useState("");
 
   const { data: categories } = useCategories();
   const importMutation = useImportDeck();
@@ -57,6 +63,18 @@ export default function ImportPage() {
     reader.readAsText(file);
   }
 
+  function handleAddSource() {
+    if (!sourceLabel.trim()) return;
+    setSources((prev) => [...prev, { label: sourceLabel.trim(), url: sourceURL.trim() }]);
+    setSourceLabel("");
+    setSourceURL("");
+    setShowSourceForm(false);
+  }
+
+  function handleRemoveSource(index: number) {
+    setSources((prev) => prev.filter((_, i) => i !== index));
+  }
+
   // Step 2 — create deck then batch create cards using useImportDeck
   const handleImport = () => {
     importMutation.mutate(
@@ -64,6 +82,7 @@ export default function ImportPage() {
         name: deckName,
         category,
         fileName,
+        sources,
         cards: parsedCards.map((c) => ({ front: c.front, back: c.back })),
       },
       {
@@ -247,6 +266,65 @@ What is an interface?\tA set of method signatures`}
                   </div>
                 )}
               </div>
+
+              {/* Sources */}
+            <div className="relative">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                Sources <span className="font-normal normal-case tracking-normal text-slate-400 dark:text-slate-600">optional</span>
+              </label>
+
+              {sources.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {sources.map((source, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-full px-3 py-1.5 group">
+                      {source.url ? (
+                        <a href={source.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                          <ExternalLink size={11} />
+                          {source.label}
+                        </a>
+                      ) : (
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{source.label}</span>
+                      )}
+                      <button onClick={() => handleRemoveSource(idx)} className="text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer">
+                        <X size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showSourceForm ? (
+                <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 space-y-3">
+                  <input
+                    type="text"
+                    value={sourceLabel}
+                    onChange={(e) => setSourceLabel(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                    placeholder="Label — e.g. Redis docs, Clean Code ch.3"
+                  />
+                  <input
+                    type="url"
+                    value={sourceURL}
+                    onChange={(e) => setSourceURL(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                    placeholder="URL (optional) — https://..."
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={handleAddSource} disabled={!sourceLabel.trim()} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold px-4 py-2 rounded-full transition-all cursor-pointer">
+                      Add
+                    </button>
+                    <button onClick={() => { setShowSourceForm(false); setSourceLabel(""); setSourceURL(""); }} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white text-xs font-bold px-4 py-2 transition-colors cursor-pointer">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setShowSourceForm(true)} className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors cursor-pointer">
+                  <Plus size={12} />
+                  Add source
+                </button>
+              )}
+            </div>
 
               {/* Card preview table */}
               <div>
