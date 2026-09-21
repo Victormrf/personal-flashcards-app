@@ -7,10 +7,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/Victormrf/personal-flashcards-app/internal/service"
+	"github.com/Victormrf/personal-flashcards-app/internal/domain"
 )
 
 type DeckHandler struct {
 	decks *service.DeckService
+}
+
+type deckSourceRequest struct {
+    Label string `json:"label"`
+    URL   string `json:"url"`
+}
+
+type updateSourcesRequest struct {
+    Sources []deckSourceRequest `json:"sources"`
 }
 
 func NewDeckHandler(decks *service.DeckService) *DeckHandler {
@@ -21,6 +31,7 @@ type createDeckRequest struct {
     Name        string `json:"name"`
     Description string `json:"description"`
     Category    string `json:"category"` // optional
+	Sources     []deckSourceRequest `json:"sources"`
 }
 
 func (h *DeckHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -67,13 +78,44 @@ func (h *DeckHandler) Create(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    deck, err := h.decks.Create(r.Context(), userID, req.Name, req.Description, req.Category)
+    sources := make([]domain.DeckSource, len(req.Sources))
+    for i, s := range req.Sources {
+        sources[i] = domain.DeckSource{Label: s.Label, URL: s.URL}
+    }
+
+    deck, err := h.decks.Create(r.Context(), userID, req.Name, req.Description, req.Category, sources)
     if err != nil {
         writeError(w, err)
         return
     }
 
     writeJSON(w, http.StatusCreated, deck)
+}
+
+func (h *DeckHandler) UpdateSources(w http.ResponseWriter, r *http.Request) {
+    deckID, err := uuid.Parse(chi.URLParam(r, "deckID"))
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    var req updateSourcesRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    sources := make([]domain.DeckSource, len(req.Sources))
+    for i, s := range req.Sources {
+        sources[i] = domain.DeckSource{Label: s.Label, URL: s.URL}
+    }
+
+    if err := h.decks.UpdateSources(r.Context(), deckID, sources); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    writeJSON(w, http.StatusOK, map[string]any{"sources": sources})
 }
 
 func (h *DeckHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
@@ -102,3 +144,4 @@ func (h *DeckHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+

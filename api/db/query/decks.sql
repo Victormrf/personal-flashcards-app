@@ -8,9 +8,14 @@ SELECT * FROM decks
 WHERE id = $1;
 
 -- name: CreateDeck :one
-INSERT INTO decks (id, user_id, name, description, category)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO decks (id, user_id, name, description, category, sources)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
+
+-- name: UpdateDeckSources :exec
+UPDATE decks
+SET sources = $2
+WHERE id = $1;
 
 -- name: DeleteDeck :exec
 DELETE FROM decks WHERE id = $1;

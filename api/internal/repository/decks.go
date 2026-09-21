@@ -13,4 +13,5 @@ type DeckRepository interface {
     Create(ctx context.Context, deck domain.Deck) (*domain.Deck, error)
     Delete(ctx context.Context, id uuid.UUID) error
     GetCategories(ctx context.Context, userID uuid.UUID) ([]string, error)
+    UpdateSources(ctx context.Context, deckID uuid.UUID, sources []domain.DeckSource) error
 }

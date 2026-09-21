@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+    "encoding/json"
 	"errors"
 
 	"github.com/google/uuid"
@@ -44,12 +45,18 @@ func (r *deckRepository) FindByUser(ctx context.Context, userID uuid.UUID) ([]do
 }
 
 func (r *deckRepository) Create(ctx context.Context, deck domain.Deck) (*domain.Deck, error) {
+    sourcesJSON, err := json.Marshal(deck.Sources)
+    if err != nil {
+        return nil, err
+    }
+
     row, err := r.q.CreateDeck(ctx, db.CreateDeckParams{
         ID:          deck.ID,
         UserID:      deck.UserID,
         Name:        deck.Name,
         Description: sql.NullString{String: deck.Description, Valid: deck.Description != ""},
         Category:    sql.NullString{String: deck.Category, Valid: deck.Category != ""},
+        Sources:     sourcesJSON,
     })
     if err != nil {
         return nil, err
@@ -57,6 +64,18 @@ func (r *deckRepository) Create(ctx context.Context, deck domain.Deck) (*domain.
     d := toDomainDeck(row)
     return &d, nil
 }
+
+func (r *deckRepository) UpdateSources(ctx context.Context, deckID uuid.UUID, sources []domain.DeckSource) error {
+    sourcesJSON, err := json.Marshal(sources)
+    if err != nil {
+        return err
+    }
+    return r.q.UpdateDeckSources(ctx, db.UpdateDeckSourcesParams{
+        ID:      deckID,
+        Sources: sourcesJSON,
+    })
+}
+
 
 func (r *deckRepository) GetCategories(ctx context.Context, userID uuid.UUID) ([]string, error) {
     rows, err := r.q.GetCategoriesByUser(ctx, userID)
@@ -77,12 +96,21 @@ func (r *deckRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func toDomainDeck(row db.Deck) domain.Deck {
+    var sources []domain.DeckSource
+    if len(row.Sources) > 0 {
+        json.Unmarshal(row.Sources, &sources)
+    }
+    if sources == nil {
+        sources = []domain.DeckSource{}
+    }
+
     return domain.Deck{
         ID:          row.ID,
         UserID:      row.UserID,
         Name:        row.Name,
         Description: row.Description.String,
-        Category:    row.Category.String, // empty string if NULL
+        Category:    row.Category.String,
+        Sources:     sources,
         CreatedAt:   row.CreatedAt,
     }
 }

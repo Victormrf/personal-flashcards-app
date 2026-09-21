@@ -130,6 +130,7 @@ func main() {
 		r.Post("/api/v1/decks/{deckID}/cards/batch", cardH.CreateMany)
 		r.Get("/api/v1/decks/{deckID}",             deckH.GetByID)
 		r.Get("/api/v1/decks/{deckID}/cards",       cardH.GetByDeck)
+		r.Put("/api/v1/decks/{deckID}/sources", deckH.UpdateSources)
 		r.Get("/api/v1/categories", 				deckH.GetCategories)
 	})
 

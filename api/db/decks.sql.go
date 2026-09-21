@@ -8,22 +8,24 @@ package db
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
 
 const createDeck = `-- name: CreateDeck :one
-INSERT INTO decks (id, user_id, name, description, category)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, user_id, parent_id, name, description, created_at, category
+INSERT INTO decks (id, user_id, name, description, category, sources)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, user_id, parent_id, name, description, created_at, category, sources
 `
 
 type CreateDeckParams struct {
-	ID          uuid.UUID      `json:"id"`
-	UserID      uuid.UUID      `json:"user_id"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	Category    sql.NullString `json:"category"`
+	ID          uuid.UUID       `json:"id"`
+	UserID      uuid.UUID       `json:"user_id"`
+	Name        string          `json:"name"`
+	Description sql.NullString  `json:"description"`
+	Category    sql.NullString  `json:"category"`
+	Sources     json.RawMessage `json:"sources"`
 }
 
 func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, error) {
@@ -33,6 +35,7 @@ func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, e
 		arg.Name,
 		arg.Description,
 		arg.Category,
+		arg.Sources,
 	)
 	var i Deck
 	err := row.Scan(
@@ -43,6 +46,7 @@ func (q *Queries) CreateDeck(ctx context.Context, arg CreateDeckParams) (Deck, e
 		&i.Description,
 		&i.CreatedAt,
 		&i.Category,
+		&i.Sources,
 	)
 	return i, err
 }
@@ -89,7 +93,7 @@ func (q *Queries) GetCategoriesByUser(ctx context.Context, userID uuid.UUID) ([]
 }
 
 const getDeckByID = `-- name: GetDeckByID :one
-SELECT id, user_id, parent_id, name, description, created_at, category FROM decks
+SELECT id, user_id, parent_id, name, description, created_at, category, sources FROM decks
 WHERE id = $1
 `
 
@@ -104,12 +108,13 @@ func (q *Queries) GetDeckByID(ctx context.Context, id uuid.UUID) (Deck, error) {
 		&i.Description,
 		&i.CreatedAt,
 		&i.Category,
+		&i.Sources,
 	)
 	return i, err
 }
 
 const getDecksByUser = `-- name: GetDecksByUser :many
-SELECT id, user_id, parent_id, name, description, created_at, category FROM decks
+SELECT id, user_id, parent_id, name, description, created_at, category, sources FROM decks
 WHERE user_id = $1
 ORDER BY created_at ASC
 `
@@ -131,6 +136,7 @@ func (q *Queries) GetDecksByUser(ctx context.Context, userID uuid.UUID) ([]Deck,
 			&i.Description,
 			&i.CreatedAt,
 			&i.Category,
+			&i.Sources,
 		); err != nil {
 			return nil, err
 		}
@@ -143,4 +149,20 @@ func (q *Queries) GetDecksByUser(ctx context.Context, userID uuid.UUID) ([]Deck,
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateDeckSources = `-- name: UpdateDeckSources :exec
+UPDATE decks
+SET sources = $2
+WHERE id = $1
+`
+
+type UpdateDeckSourcesParams struct {
+	ID      uuid.UUID       `json:"id"`
+	Sources json.RawMessage `json:"sources"`
+}
+
+func (q *Queries) UpdateDeckSources(ctx context.Context, arg UpdateDeckSourcesParams) error {
+	_, err := q.db.ExecContext(ctx, updateDeckSources, arg.ID, arg.Sources)
+	return err
 }

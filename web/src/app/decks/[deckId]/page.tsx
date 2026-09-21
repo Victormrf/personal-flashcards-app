@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Plus, Trash2, BookOpen, ArrowLeft } from "lucide-react";
-import { useDeck, useDeleteDeck } from "@/hooks/useDeck";
+import { ExternalLink, Link2, Plus, Trash2, BookOpen, ArrowLeft, X } from "lucide-react";
+import { DeckSource } from "@/types";
+import { useDeck, useDeleteDeck, useUpdateSources  } from "@/hooks/useDeck";
 import { useCards, useCreateCard, useDeleteCard } from "@/hooks/useCards";
 
 export default function DeckDetailPage() {
@@ -14,12 +15,16 @@ export default function DeckDetailPage() {
   const [back, setBack] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSourceForm, setShowSourceForm] = useState(false);
+  const [sourceLabel, setSourceLabel]       = useState("");
+  const [sourceURL, setSourceURL]           = useState("");
 
   const { data: deck } = useDeck(deckId);
   const { data: cards, isLoading } = useCards(deckId);
   const createCard = useCreateCard(deckId);
   const deleteCard = useDeleteCard(deckId);
   const deleteDeck = useDeleteDeck();
+  const updateSources = useUpdateSources(deckId);
 
   const handleCreateCard = () => {
     if (!front.trim() || !back.trim()) return;
@@ -34,6 +39,26 @@ export default function DeckDetailPage() {
       }
     );
   };
+
+  function handleAddSource() {
+    if (!sourceLabel.trim()) return;
+    const current = deck?.sources ?? [];
+    const updated  = [...current, { label: sourceLabel.trim(), url: sourceURL.trim() }];
+    updateSources.mutate(updated, {
+      onSuccess: () => {
+        setSourceLabel("");
+        setSourceURL("");
+        setShowSourceForm(false);
+      },
+    });
+  }
+
+  function handleRemoveSource(index: number) {
+    const current = deck?.sources ?? [];
+    const updated  = current.filter((_, i) => i !== index);
+    updateSources.mutate(updated);
+  }
+
 
   return (
     <div className="flex-1 w-full flex flex-col justify-start">

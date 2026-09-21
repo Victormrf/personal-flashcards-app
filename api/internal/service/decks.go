@@ -28,13 +28,17 @@ func (s *DeckService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Deck, 
 	return deck, nil
 }
 
-func (s *DeckService) Create(ctx context.Context, userID uuid.UUID, name, description, category string) (*domain.Deck, error) {
+func (s *DeckService) Create(ctx context.Context, userID uuid.UUID, name, description, category string, sources []domain.DeckSource) (*domain.Deck, error) {
+    if sources == nil {
+        sources = []domain.DeckSource{}
+    }
     deck := domain.Deck{
         ID:          uuid.New(),
         UserID:      userID,
         Name:        name,
         Description: description,
         Category:    category,
+        Sources:     sources,
     }
     return s.decks.Create(ctx, deck)
 }
@@ -45,6 +49,17 @@ func (s *DeckService) ListByUser(ctx context.Context, userID uuid.UUID) ([]domai
 
 func (s *DeckService) GetCategories(ctx context.Context, userID uuid.UUID) ([]string, error) {
     return s.decks.GetCategories(ctx, userID)
+}
+
+func (s *DeckService) UpdateSources(ctx context.Context, deckID uuid.UUID, sources []domain.DeckSource) error {
+    deck, err := s.decks.FindByID(ctx, deckID)
+    if err != nil {
+        return err
+    }
+    if deck == nil {
+        return fmt.Errorf("deck %s not found", deckID)
+    }
+    return s.decks.UpdateSources(ctx, deckID, sources)
 }
 
 func (s *DeckService) Delete(ctx context.Context, id uuid.UUID) error {

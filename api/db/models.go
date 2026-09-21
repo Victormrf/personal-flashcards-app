@@ -6,6 +6,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,13 +30,14 @@ type CardTag struct {
 }
 
 type Deck struct {
-	ID          uuid.UUID      `json:"id"`
-	UserID      uuid.UUID      `json:"user_id"`
-	ParentID    uuid.NullUUID  `json:"parent_id"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	CreatedAt   time.Time      `json:"created_at"`
-	Category    sql.NullString `json:"category"`
+	ID          uuid.UUID       `json:"id"`
+	UserID      uuid.UUID       `json:"user_id"`
+	ParentID    uuid.NullUUID   `json:"parent_id"`
+	Name        string          `json:"name"`
+	Description sql.NullString  `json:"description"`
+	CreatedAt   time.Time       `json:"created_at"`
+	Category    sql.NullString  `json:"category"`
+	Sources     json.RawMessage `json:"sources"`
 }
 
 type ReviewLog struct {

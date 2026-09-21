@@ -1,5 +1,6 @@
 import api from "@/lib/api";
 import { Deck } from "@/types";
+import { DeckSource } from "@/types";
 
 export interface CreateDeckParams {
   name: string;
@@ -23,6 +24,9 @@ export const deckService = {
 
   create: (params: CreateDeckParams): Promise<Deck> =>
     api.post("/decks", params).then((r) => r.data),
+
+  updateSources: (id: string, sources: DeckSource[]): Promise<{ sources: DeckSource[] }> =>
+    api.put(`/decks/${id}/sources`, { sources }).then((r) => r.data),
 
   delete: (id: string): Promise<void> =>
     api.delete(`/decks/${id}`).then((r) => r.data),
