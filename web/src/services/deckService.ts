@@ -6,12 +6,14 @@ export interface CreateDeckParams {
   name: string;
   description?: string;
   category?: string;
+  sources?: DeckSource[];
 }
 
 export interface ImportDeckParams {
   name: string;
   category?: string;
   fileName: string;
+  sources?: DeckSource[];
   cards: Array<{ front: string; back: string }>;
 }
 
@@ -39,6 +41,7 @@ export const deckService = {
       name: params.name,
       description: `Imported from ${params.fileName}`,
       category: params.category,
+      sources: params.sources ?? [],
     });
     const deckId = deckRes.data.id;
     await api.post(`/decks/${deckId}/cards/batch`, {

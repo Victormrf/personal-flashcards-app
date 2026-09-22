@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink, Link } from "lucide-react";
 import { useDueCards } from "@/hooks/useCards";
 import { useSubmitReview } from "@/hooks/useReviews";
-import { Card } from "@/types";
+import { Card, Deck } from "@/types";
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
 const RATINGS = [
   { value: 1, label: "Again",  color: "bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-950/40 dark:text-rose-400 border border-rose-150 dark:border-rose-900/30",    key: "1" },
@@ -25,6 +27,11 @@ export default function StudyPage() {
   const [sessionCards, setSessionCards] = useState<Card[] | null>(null);
 
   const { data: dueCards, isLoading } = useDueCards(deckId);
+  const { data: deck } = useQuery<Deck>({
+    queryKey: ["deck", deckId],
+    queryFn: () => api.get(`/decks/${deckId}`).then((r) => r.data),
+    enabled: !!deckId,
+  });
   const reviewMutation = useSubmitReview();
 
   useEffect(() => {
@@ -146,6 +153,30 @@ export default function StudyPage() {
             />
           </div>
         </div>
+
+        {/* Sources — only shown when studying a specific deck */}
+        {deck?.sources && deck.sources.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 px-6 py-3">
+            {deck.sources.map((source, idx) => (
+              source.url ? (
+                <a
+                  key={idx}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-indigo-400 transition-colors"
+                >
+                  <ExternalLink size={11} />
+                  {source.label}
+                </a>
+              ) : (
+                <span key={idx} className="text-xs text-gray-500">
+                  {source.label}
+                </span>
+              )
+            ))}
+          </div>
+        )}
 
         {/* Card Study Interface */}
         <div className="flex-1 flex flex-col items-center justify-center py-6">
