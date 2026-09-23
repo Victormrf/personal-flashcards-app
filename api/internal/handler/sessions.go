@@ -13,13 +13,21 @@ type SessionHandler struct {
 	sessions *service.SessionService
 }
 
-func NewSessionHandler(sessions *service.SessionService) *SessionHandler {
-	return &SessionHandler{sessions: sessions}
-}
-
 type createSessionRequest struct {
 	Name    string   `json:"name"`
 	DeckIDs []string `json:"deck_ids"`
+}
+
+type updateSessionNameRequest struct {
+    Name string `json:"name"`
+}
+
+type replaceDecksRequest struct {
+    DeckIDs []string `json:"deck_ids"`
+}
+
+func NewSessionHandler(sessions *service.SessionService) *SessionHandler {
+	return &SessionHandler{sessions: sessions}
 }
 
 func (h *SessionHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +75,43 @@ func (h *SessionHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, sessions)
 }
 
+func (h *SessionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+    sessionID, err := uuid.Parse(chi.URLParam(r, "sessionID"))
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    session, err := h.sessions.GetByID(r.Context(), sessionID)
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    writeJSON(w, http.StatusOK, session)
+}
+
+func (h *SessionHandler) UpdateName(w http.ResponseWriter, r *http.Request) {
+    sessionID, err := uuid.Parse(chi.URLParam(r, "sessionID"))
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    var req updateSessionNameRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    if err := h.sessions.UpdateName(r.Context(), sessionID, req.Name); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *SessionHandler) GetDueCards(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := uuid.Parse(chi.URLParam(r, "sessionID"))
 	if err != nil {
@@ -81,6 +126,37 @@ func (h *SessionHandler) GetDueCards(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, cards)
+}
+
+func (h *SessionHandler) ReplaceDecks(w http.ResponseWriter, r *http.Request) {
+    sessionID, err := uuid.Parse(chi.URLParam(r, "sessionID"))
+    if err != nil {
+        writeError(w, err)
+        return
+    }
+
+    var req replaceDecksRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    deckIDs := make([]uuid.UUID, 0, len(req.DeckIDs))
+    for _, id := range req.DeckIDs {
+        parsed, err := uuid.Parse(id)
+        if err != nil {
+            writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid deck_id: " + id})
+            return
+        }
+        deckIDs = append(deckIDs, parsed)
+    }
+
+    if err := h.sessions.ReplaceDecks(r.Context(), sessionID, deckIDs); err != nil {
+        writeError(w, err)
+        return
+    }
+
+    w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *SessionHandler) Delete(w http.ResponseWriter, r *http.Request) {

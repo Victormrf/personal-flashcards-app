@@ -25,9 +25,21 @@ INSERT INTO session_decks (session_id, deck_id)
 VALUES ($1, $2)
 ON CONFLICT DO NOTHING;
 
+-- name: UpdateStudySessionName :exec
+UPDATE study_sessions
+SET name = $2
+WHERE id = $1;
+
 -- name: RemoveDeckFromSession :exec
 DELETE FROM session_decks
 WHERE session_id = $1 AND deck_id = $2;
 
+-- name: ReplaceSessionDecks :exec
+DELETE FROM session_decks WHERE session_id = $1;
+
+-- name: GetSessionDeckIDs :many
+SELECT deck_id FROM session_decks WHERE session_id = $1;
+
 -- name: DeleteStudySession :exec
 DELETE FROM study_sessions WHERE id = $1;
+

@@ -41,4 +41,13 @@ export const sessionService = {
 
   getDueCards: (sessionId: string): Promise<Card[]> =>
     api.get(`/sessions/${sessionId}/study`).then((r) => r.data),
+
+  getById: (id: string): Promise<StudySession> =>
+    api.get(`/sessions/${id}`).then((r) => r.data),
+
+  updateName: (id: string, name: string): Promise<void> =>
+    api.put(`/sessions/${id}/name`, { name }).then((r) => r.data),
+
+  replaceDecks: (id: string, deckIds: string[]): Promise<void> =>
+    api.put(`/sessions/${id}/decks`, { deck_ids: deckIds }).then((r) => r.data),
 };

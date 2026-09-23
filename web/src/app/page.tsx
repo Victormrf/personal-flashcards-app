@@ -175,7 +175,7 @@ const deleteSession = useDeleteSession();
                   className="flex items-center gap-3 bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 rounded-full pl-4 pr-2 py-2 group"
                 >
                   <Link
-                    href={`/sessions/${session.id}/study`}
+                    href={`/sessions/${session.id}`}
                     className="text-sm font-semibold text-slate-800 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                   >
                     {session.name}

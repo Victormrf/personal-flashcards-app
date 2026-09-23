@@ -61,6 +61,33 @@ func (q *Queries) DeleteStudySession(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getSessionDeckIDs = `-- name: GetSessionDeckIDs :many
+SELECT deck_id FROM session_decks WHERE session_id = $1
+`
+
+func (q *Queries) GetSessionDeckIDs(ctx context.Context, sessionID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getSessionDeckIDs, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var deck_id uuid.UUID
+		if err := rows.Scan(&deck_id); err != nil {
+			return nil, err
+		}
+		items = append(items, deck_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getStudySessionByID = `-- name: GetStudySessionByID :one
 SELECT s.id, s.user_id, s.name, s.created_at,
        ARRAY_AGG(sd.deck_id) FILTER (WHERE sd.deck_id IS NOT NULL) AS deck_ids
@@ -150,5 +177,30 @@ type RemoveDeckFromSessionParams struct {
 
 func (q *Queries) RemoveDeckFromSession(ctx context.Context, arg RemoveDeckFromSessionParams) error {
 	_, err := q.db.ExecContext(ctx, removeDeckFromSession, arg.SessionID, arg.DeckID)
+	return err
+}
+
+const replaceSessionDecks = `-- name: ReplaceSessionDecks :exec
+DELETE FROM session_decks WHERE session_id = $1
+`
+
+func (q *Queries) ReplaceSessionDecks(ctx context.Context, sessionID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, replaceSessionDecks, sessionID)
+	return err
+}
+
+const updateStudySessionName = `-- name: UpdateStudySessionName :exec
+UPDATE study_sessions
+SET name = $2
+WHERE id = $1
+`
+
+type UpdateStudySessionNameParams struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+func (q *Queries) UpdateStudySessionName(ctx context.Context, arg UpdateStudySessionNameParams) error {
+	_, err := q.db.ExecContext(ctx, updateStudySessionName, arg.ID, arg.Name)
 	return err
 }
