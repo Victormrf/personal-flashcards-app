@@ -57,10 +57,12 @@ func main() {
 	deckRepo   := postgres.NewDeckRepository(queries)
 	reviewRepo := postgres.NewReviewRepository(queries)
 	userRepo   := postgres.NewUserRepository(queries)
+	sessionRepo := postgres.NewSessionRepository(queries)
 
 	// 5. Wire services
 	cardSvc   := service.NewCardService(cardRepo, deckRepo)
 	deckSvc   := service.NewDeckService(deckRepo)
+	sessionSvc  := service.NewSessionService(sessionRepo, cardRepo)
 	reviewSvc := service.NewReviewService(cardRepo, reviewRepo, redisCache)
 	authSvc   := service.NewAuthService(userRepo, cfg.JWTSecret)
 
@@ -85,6 +87,7 @@ func main() {
 	// 6. Wire handlers
 	cardH   := handler.NewCardHandler(cardSvc)
 	deckH   := handler.NewDeckHandler(deckSvc)
+	sessionH    := handler.NewSessionHandler(sessionSvc)
 	reviewH := handler.NewReviewHandler(reviewSvc)
 	authH   := handler.NewAuthHandler(authSvc)
 
@@ -132,6 +135,10 @@ func main() {
 		r.Get("/api/v1/decks/{deckID}/cards",       cardH.GetByDeck)
 		r.Put("/api/v1/decks/{deckID}/sources", deckH.UpdateSources)
 		r.Get("/api/v1/categories", 				deckH.GetCategories)
+		r.Get("/api/v1/sessions",                        sessionH.List)
+		r.Post("/api/v1/sessions",                       sessionH.Create)
+		r.Delete("/api/v1/sessions/{sessionID}",         sessionH.Delete)
+		r.Get("/api/v1/sessions/{sessionID}/study",      sessionH.GetDueCards)
 	})
 
 	// 8. Start server

@@ -201,6 +201,53 @@ func (q *Queries) GetDueCards(ctx context.Context, arg GetDueCardsParams) ([]Car
 	return items, nil
 }
 
+const getDueCardsByDecks = `-- name: GetDueCardsByDecks :many
+SELECT id, deck_id, front, back, ease_factor, interval_days, repetitions, due_at, created_at FROM cards
+WHERE deck_id = ANY($1::uuid[])
+  AND due_at <= $2
+ORDER BY due_at ASC
+LIMIT $3
+`
+
+type GetDueCardsByDecksParams struct {
+	Column1 []uuid.UUID `json:"column_1"`
+	DueAt   time.Time   `json:"due_at"`
+	Limit   int32       `json:"limit"`
+}
+
+func (q *Queries) GetDueCardsByDecks(ctx context.Context, arg GetDueCardsByDecksParams) ([]Card, error) {
+	rows, err := q.db.QueryContext(ctx, getDueCardsByDecks, pq.Array(arg.Column1), arg.DueAt, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Card
+	for rows.Next() {
+		var i Card
+		if err := rows.Scan(
+			&i.ID,
+			&i.DeckID,
+			&i.Front,
+			&i.Back,
+			&i.EaseFactor,
+			&i.IntervalDays,
+			&i.Repetitions,
+			&i.DueAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateCardScheduling = `-- name: UpdateCardScheduling :exec
 UPDATE cards
 SET

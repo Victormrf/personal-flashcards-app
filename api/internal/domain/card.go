@@ -45,6 +45,14 @@ type ReviewLog struct {
 	ReviewedAt   time.Time `json:"reviewed_at"`
 }
 
+type StudySession struct {
+    ID        uuid.UUID    `json:"id"`
+    UserID    uuid.UUID    `json:"user_id"`
+    Name      string       `json:"name"`
+    DeckIDs   []uuid.UUID  `json:"deck_ids"`
+    CreatedAt time.Time    `json:"created_at"`
+}
+
 type User struct {
 	ID           uuid.UUID `json:"id"`
 	Email        string    `json:"email"`

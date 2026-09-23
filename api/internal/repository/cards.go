@@ -12,6 +12,7 @@ type CardRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.Card, error)
 	FindByDeck(ctx context.Context, deckID uuid.UUID) ([]domain.Card, error)
 	FindDue(ctx context.Context, params FindDueParams) ([]domain.Card, error)
+	FindDueByDecks(ctx context.Context, params FindDueByDecksParams) ([]domain.Card, error)
 	Create(ctx context.Context, card domain.Card) (*domain.Card, error)
 	CreateMany(ctx context.Context, cards []domain.Card) error
 	UpdateScheduling(ctx context.Context, params UpdateSchedulingParams) error
@@ -23,6 +24,12 @@ type FindDueParams struct {
 	DeckID *uuid.UUID // nil means all decks
 	Before time.Time
 	Limit  int32
+}
+
+type FindDueByDecksParams struct {
+    DeckIDs []uuid.UUID
+    Before  time.Time
+    Limit   int32
 }
 
 type UpdateSchedulingParams struct {
