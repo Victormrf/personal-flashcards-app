@@ -68,6 +68,22 @@ func (r *cardRepository) FindDue(ctx context.Context, p repository.FindDueParams
 	return cards, nil
 }
 
+func (r *cardRepository) FindDueByDecks(ctx context.Context, p repository.FindDueByDecksParams) ([]domain.Card, error) {
+    rows, err := r.q.GetDueCardsByDecks(ctx, db.GetDueCardsByDecksParams{
+        Column1: p.DeckIDs,
+        DueAt:   p.Before,
+        Limit:   p.Limit,
+    })
+    if err != nil {
+        return nil, err
+    }
+    cards := make([]domain.Card, len(rows))
+    for i, row := range rows {
+        cards[i] = toDomainCard(row)
+    }
+    return cards, nil
+}
+
 func (r *cardRepository) Create(ctx context.Context, card domain.Card) (*domain.Card, error) {
 	row, err := r.q.CreateCard(ctx, db.CreateCardParams{
 		ID:     card.ID,

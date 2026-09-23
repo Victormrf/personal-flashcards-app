@@ -12,6 +12,13 @@ AND due_at <= sqlc.arg('due_at')
 ORDER BY due_at ASC
 LIMIT sqlc.arg('limit');
 
+-- name: GetDueCardsByDecks :many
+SELECT * FROM cards
+WHERE deck_id = ANY($1::uuid[])
+  AND due_at <= $2
+ORDER BY due_at ASC
+LIMIT $3;
+
 -- name: GetCardsByDeck :many
 SELECT * FROM cards
 WHERE deck_id = $1

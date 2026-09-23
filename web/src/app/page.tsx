@@ -7,6 +7,9 @@ import { categoryColor } from "@/lib/categoryColor";
 import { useDecks, useCategories } from "@/hooks/useDeck";
 import { useDueCards } from "@/hooks/useCards";
 import { BookOpen, Plus, Upload } from "lucide-react";
+import { useSessions, useDeleteSession } from "@/hooks/useSession";
+import { StudySession } from "@/types";
+import { Layers, Trash2 } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -15,6 +18,9 @@ export default function DashboardPage() {
   const { data: decks, isLoading } = useDecks();
   const { data: dueCards } = useDueCards();
   const { data: categories } = useCategories();
+
+  const { data: sessions, isLoading: sessionsLoading, isError: sessionsError } = useSessions();
+const deleteSession = useDeleteSession();
 
   const filteredDecks = activeCategory
     ? decks?.filter((d) => d.category === activeCategory)
@@ -55,6 +61,13 @@ export default function DashboardPage() {
             >
               <Plus size={14} />
               New Deck
+            </Link>
+            <Link
+              href="/sessions/new"
+              className="inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold py-3 px-5 rounded-full text-xs transition-all cursor-pointer"
+            >
+              <Layers size={14} />
+              New Session
             </Link>
           </div>
         </div>
@@ -128,6 +141,58 @@ export default function DashboardPage() {
                 Create First Deck
               </Link>
             )}
+          </div>
+        )}
+
+        {/* Study Sessions */}
+        {sessionsLoading && (
+          <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">Loading study sessions...</p>
+        )}
+        {sessionsError && (
+          <p className="mb-6 text-sm text-red-600 dark:text-red-400" role="alert">
+            Could not load study sessions. Please refresh the page.
+          </p>
+        )}
+        {sessions && sessions.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                <Layers size={13} />
+                Study Sessions
+              </h2>
+              <Link
+                href="/sessions/new"
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors flex items-center gap-1"
+              >
+                <Plus size={12} />
+                New session
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {sessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="flex items-center gap-3 bg-white dark:bg-[#0d1527] border border-slate-200 dark:border-slate-800 rounded-full pl-4 pr-2 py-2 group"
+                >
+                  <Link
+                    href={`/sessions/${session.id}/study`}
+                    className="text-sm font-semibold text-slate-800 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  >
+                    {session.name}
+                  </Link>
+                  <span className="text-xs text-slate-400 dark:text-slate-600">
+                    {session.deck_ids.length} deck{session.deck_ids.length !== 1 ? "s" : ""}
+                  </span>
+                  <button
+                    onClick={() => deleteSession.mutate(session.id)}
+                    className="text-slate-300 dark:text-slate-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer p-1 rounded-full"
+                    aria-label="Delete session"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -32,6 +32,14 @@ export interface Card {
   created_at: string;
 }
 
+export interface StudySession {
+  id: string;
+  user_id: string;
+  name: string;
+  deck_ids: string[];
+  created_at: string;
+}
+
 export interface ReviewLog {
   id: string;
   card_id: string;
