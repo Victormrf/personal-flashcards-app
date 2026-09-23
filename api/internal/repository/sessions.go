@@ -14,4 +14,6 @@ type SessionRepository interface {
     AddDeck(ctx context.Context, sessionID, deckID uuid.UUID) error
     RemoveDeck(ctx context.Context, sessionID, deckID uuid.UUID) error
     Delete(ctx context.Context, id uuid.UUID) error
+    UpdateName(ctx context.Context, id uuid.UUID, name string) error
+    ReplaceDecks(ctx context.Context, id uuid.UUID, deckIDs []uuid.UUID) error
 }

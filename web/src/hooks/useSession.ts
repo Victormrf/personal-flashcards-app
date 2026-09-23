@@ -9,6 +9,14 @@ export const sessionKeys = {
   study:    (id: string) => ["session-study", id] as const,
 };
 
+export function useSession(sessionId: string) {
+  return useQuery<StudySession>({
+    queryKey: sessionKeys.detail(sessionId),
+    queryFn:  () => sessionService.getById(sessionId),
+    enabled:  !!sessionId,
+  });
+}
+
 export function useSessions() {
   return useQuery<StudySession[]>({
     queryKey: sessionKeys.all(),
@@ -33,6 +41,30 @@ export function useCreateSession() {
     onSuccess: (session) => {
       queryClient.invalidateQueries({ queryKey: sessionKeys.all() });
       router.push(`/sessions/${session.id}/study`);
+    },
+  });
+}
+
+export function useUpdateSessionName(sessionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (name: string) => sessionService.updateName(sessionId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sessionKeys.detail(sessionId) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.all() });
+    },
+  });
+}
+
+export function useReplaceSessionDecks(sessionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (deckIds: string[]) => sessionService.replaceDecks(sessionId, deckIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sessionKeys.detail(sessionId) });
+      queryClient.invalidateQueries({ queryKey: sessionKeys.all() });
     },
   });
 }

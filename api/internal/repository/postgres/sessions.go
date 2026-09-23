@@ -96,6 +96,30 @@ func (r *sessionRepository) RemoveDeck(ctx context.Context, sessionID, deckID uu
 	})
 }
 
+func (r *sessionRepository) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
+    return r.q.UpdateStudySessionName(ctx, db.UpdateStudySessionNameParams{
+        ID:   id,
+        Name: name,
+    })
+}
+
+func (r *sessionRepository) ReplaceDecks(ctx context.Context, id uuid.UUID, deckIDs []uuid.UUID) error {
+    // Delete all existing deck associations for this session
+    if err := r.q.ReplaceSessionDecks(ctx, id); err != nil {
+        return err
+    }
+    // Re-insert the new list
+    for _, deckID := range deckIDs {
+        if err := r.q.AddDeckToSession(ctx, db.AddDeckToSessionParams{
+            SessionID: id,
+            DeckID:    deckID,
+        }); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+
 func (r *sessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.q.DeleteStudySession(ctx, id)
 }

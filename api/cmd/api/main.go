@@ -136,8 +136,11 @@ func main() {
 		r.Put("/api/v1/decks/{deckID}/sources", deckH.UpdateSources)
 		r.Get("/api/v1/categories", 				deckH.GetCategories)
 		r.Get("/api/v1/sessions",                        sessionH.List)
+		r.Get("/api/v1/sessions/{sessionID}",            sessionH.GetByID)
 		r.Post("/api/v1/sessions",                       sessionH.Create)
 		r.Delete("/api/v1/sessions/{sessionID}",         sessionH.Delete)
+		r.Put("/api/v1/sessions/{sessionID}/name",       sessionH.UpdateName)
+		r.Put("/api/v1/sessions/{sessionID}/decks",      sessionH.ReplaceDecks)
 		r.Get("/api/v1/sessions/{sessionID}/study",      sessionH.GetDueCards)
 	})
 
