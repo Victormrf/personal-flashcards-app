@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSessionDueCards } from "@/hooks/useSession";
 import api from "@/lib/api";
+import { formatCardText } from "@/lib/formatCardText";
 import { sessionKeys } from "@/hooks/useSession";
 
 const RATINGS = [
@@ -112,6 +113,8 @@ export default function SessionStudyPage() {
 
   const card     = cards[currentIndex];
   const progress = (currentIndex / cards.length) * 100;
+  const frontText = formatCardText(card.front);
+  const backText  = formatCardText(card.back);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -128,7 +131,7 @@ export default function SessionStudyPage() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div
-          className="w-full max-w-2xl min-h-64 bg-gray-900 border border-gray-800 rounded-2xl p-8 flex items-center justify-center cursor-pointer select-none"
+          className="w-full max-w-2xl bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-8 flex items-center justify-center cursor-pointer select-none"
           style={{ perspective: "1000px" }}
           onClick={() => !isFlipped && setIsFlipped(true)}
         >
@@ -139,14 +142,14 @@ export default function SessionStudyPage() {
               transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
               position: "relative",
               width: "100%",
-              minHeight: "160px",
+              height: "clamp(280px, 55vh, 520px)",
             }}
           >
-            <div style={{ backfaceVisibility: "hidden" }} className="absolute inset-0 flex items-center justify-center">
-              <p className="text-xl text-center font-medium">{card.front}</p>
+            <div style={{ backfaceVisibility: "hidden", pointerEvents: isFlipped ? "none" : "auto" }} className="absolute inset-0 flex flex-col overflow-y-auto p-2">
+              <p className={`my-auto whitespace-pre-line break-words font-medium ${frontText.includes("\n") ? "text-base sm:text-lg text-left" : "text-xl text-center"}`}>{frontText}</p>
             </div>
-            <div style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }} className="absolute inset-0 flex items-center justify-center">
-              <p className="text-xl text-center text-gray-200">{card.back}</p>
+            <div style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", pointerEvents: isFlipped ? "auto" : "none" }} className="absolute inset-0 flex flex-col overflow-y-auto p-2">
+              <p className={`my-auto whitespace-pre-line break-words text-gray-200 ${backText.includes("\n") ? "text-base sm:text-lg text-left" : "text-xl text-center"}`}>{backText}</p>
             </div>
           </div>
         </div>

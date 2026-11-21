@@ -7,6 +7,7 @@ import { useDueCards } from "@/hooks/useCards";
 import { useSubmitReview } from "@/hooks/useReviews";
 import { Card, Deck } from "@/types";
 import api from "@/lib/api";
+import { formatCardText } from "@/lib/formatCardText";
 import { useQuery } from "@tanstack/react-query";
 
 const RATINGS = [
@@ -126,6 +127,8 @@ export default function StudyPage() {
 
   const card = sessionCards[currentIndex];
   const progress = (currentIndex / sessionCards.length) * 100;
+  const frontText = formatCardText(card.front);
+  const backText = formatCardText(card.back);
 
   return (
     <div className="flex-1 w-full flex flex-col justify-start">
@@ -181,7 +184,7 @@ export default function StudyPage() {
         {/* Card Study Interface */}
         <div className="flex-1 flex flex-col items-center justify-center py-6">
           <div
-            className="w-full min-h-[280px] bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex items-center justify-center cursor-pointer select-none shadow-sm hover:shadow-md transition-all duration-300"
+            className="w-full bg-white dark:bg-[#222225] border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-8 flex items-center justify-center cursor-pointer select-none shadow-sm hover:shadow-md transition-all duration-300"
             style={{ perspective: "1000px" }}
             onClick={() => !isFlipped && setIsFlipped(true)}
           >
@@ -192,16 +195,16 @@ export default function StudyPage() {
                 transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                 position: "relative",
                 width: "100%",
-                minHeight: "180px",
+                height: "clamp(280px, 55vh, 520px)",
               }}
             >
               {/* Front */}
               <div
-                style={{ backfaceVisibility: "hidden" }}
-                className="absolute inset-0 flex items-center justify-center p-4"
+                style={{ backfaceVisibility: "hidden", pointerEvents: isFlipped ? "none" : "auto" }}
+                className="absolute inset-0 flex flex-col overflow-y-auto p-4"
               >
-                <p className="text-2xl text-center font-extrabold text-slate-900 dark:text-white leading-relaxed">
-                  {card.front}
+                <p className={`my-auto whitespace-pre-line break-words font-extrabold text-slate-900 dark:text-white leading-relaxed ${frontText.includes("\n") ? "text-lg sm:text-xl text-left" : "text-2xl text-center"}`}>
+                  {frontText}
                 </p>
               </div>
 
@@ -210,11 +213,12 @@ export default function StudyPage() {
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
+                  pointerEvents: isFlipped ? "auto" : "none",
                 }}
-                className="absolute inset-0 flex items-center justify-center p-4"
+                className="absolute inset-0 flex flex-col overflow-y-auto p-4"
               >
-                <p className="text-2xl text-center font-semibold text-indigo-900 dark:text-indigo-200 leading-relaxed">
-                  {card.back}
+                <p className={`my-auto whitespace-pre-line break-words font-semibold text-indigo-900 dark:text-indigo-200 leading-relaxed ${backText.includes("\n") ? "text-lg sm:text-xl text-left" : "text-2xl text-center"}`}>
+                  {backText}
                 </p>
               </div>
             </div>
